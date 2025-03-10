@@ -1,0 +1,23 @@
+mob-configure:
+  TriggerConditions:
+  - haspermission{p=mythic} true
+  Skills:
+  - onChat{auraname=editconfig;d="10*20";ma=true;rd=true;bartimer=true;
+    bartimertext="Say Parameter ID to Configure in Chat";desot=true;
+    onChat=[
+    - message{m="Editing Parameter <skill.var.input>"}
+    - skill{s=mob-setsetting;setting=<skill.var.input>;duration=20} @trigger
+    - removeaura{aura=editconfig}
+    ]} @trigger
+
+mob-setsetting:
+  TargetConditions:
+  - haspermission{p=mythic} true
+  Skills:
+  - onChat{auraname=setsetting;d="10*20";ma=true;rd=true;bartimer=true;
+    bartimertext="Configuring Parameter <skill.setting>";
+    onChat=[
+    - setvar{var=caster.<skill.setting>;val="<skill.var.input>";type=STRING;save=true} @self
+    - message{m="Set Parameter <skill.setting> to <caster.var.<skill.setting>>"}
+    - removeaura{aura=setsetting}
+    ]} @trigger

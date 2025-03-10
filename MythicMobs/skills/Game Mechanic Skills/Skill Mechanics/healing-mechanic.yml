@@ -1,0 +1,64 @@
+heal:
+  Skills:
+  - skill{s=heal-apply}
+
+heal-apply:
+  Skills:   
+  - setvariable{var=skill.duration;val="<skill.duration|1>*20";type=FLOAT} 
+  - setvariable{var=skill.interval;val="<skill.interval|1>";type=INTEGER} 
+  - setvariable{var=skill.max_damage;val="<skill.max_damage|2>";type=INTEGER} 
+  
+  - setvariable{var=skill.accdmg;val=0;type=FLOAT}
+  - setvariable{var=skill.heal;val=<skill.heal|5>;type=FLOAT}
+  - setvariable{var=skill.healamount;val="<skill.var.heal>/<skill.duration>/(20/<skill.var.interval>)";type=FLOAT} 
+  - setvariable{var=skill.healamount-percent;val="<skill.var.healamount>*100*(20/<skill.var.interval>)";type=FLOAT} 
+  - setvariable{var=skill.healamount-actual;val="<skill.var.healamount-percent>/200*<caster.mhp>";type=FLOAT} 
+
+  - setvariable{var=skill.counter;val=<skill.var.interval>;type=INTEGER} 
+  - setvariable{var=skill.currentpercent;val="0";type=FLOAT}  
+  
+#  - removeaura{aura=heal} 
+  - onDamaged{
+      auraName=heal;d="<skill.var.duration>+<skill.var.interval>";i=<skill.var.interval>;overwrite=true;
+      bartimer=true;bartimercolor=GREEN;bartimerstyle=SEGMENTED_10;
+      bartimerdisplay="<#A8D3AA>Healing %formatter_number_round_2_<skill.var.healamount-actual>%<#DC143C>❤<#A8D3AA>/s";
+      cod=true;cocw=true;coq=true;cocd=true;
+      onHit=heal-onhit;
+      onTick=heal-tick}  
+
+heal-vfx:
+  Skills:
+  - e:p{p=dust_color_transition;color=#03DF04;color2=#D8FCD8;amount=1;size=0.8;hs=0.5;ys=0.6;y=1}
+  - e:p{p=entity_effect;color=#62F163;amount=1;hs=0.3;ys=0.6;y=1} 0.5
+  - e:p{p=composter;amount=2;size=0.8;hs=0.3;ys=0.6;y=1;cd=0.25}
+
+heal-tick:
+  Skills:
+  - healpercent{m="<skill.var.healamount>"}  
+  - skill{s=heal-vfx}
+
+#  - variableMath{var=skill.currentpercent;equation="<skill.var.counter>/<skill.var.duration>*100"} 
+#  - variableMath{var=skill.counter;equation="<skill.var.counter>+<skill.var.interval>"} 
+#  - m{m="&8[&a!&8] &fHealing<&co> &a<skill.var.currentpercent>%"} 
+
+heal-onhit:
+  Conditions:
+  - damagecause{cause=SUFFOCATION} false
+  - damagecause{cause=STARVATION} false
+  - damagecause{cause=FIRE_TICK} false
+  - damagecause{cause=HOT_FLOOR} false
+  - damagecause{cause=POISON} false
+  - damagecause{cause=WITHER} false
+  Skills:
+   - variableMath{var=skill.accdmg;equation="<skill.var.accdmg>+<skill.var.damage-amount>"} 
+ #  - message{m="Accumulated damage <skill.var.accdmg>"} 
+   - skill{s=heal-interrupt}
+
+heal-interrupt:
+  Conditions:
+  - variableInRange{var=skill.accdmg;val=><skill.var.max_damage>} 
+  Skills:
+  - sound{s=block.beacon.deactivate;pitch=1.75;volume=0.6} 
+  - sound{s=block.fire.extinguish;pitch=2;volume=0.3} 
+  - am{m="&fHealing Interrupted"} 
+  - removeaura{aura=heal}

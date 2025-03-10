@@ -1,0 +1,49 @@
+test-fractal-cast:
+  Skills:
+  - skill{s=test-fractal-fire;damage=2.5;range=128;maxdepth=1048;origin=@SelfEyeLocation{fo=-0.5;yo=-0.2}} @forward{f=12;uel=true}
+
+test-fractal-fire:
+  TargetConditions:
+  - inblock{b=AIR}
+  Skills:
+  - setvar{var=skill.currentdepth;value=0} ?!varset{var=skill.currentdepth}
+  - setvar{var=skill.maxdepth;value=<skill.maxdepth|64>} ?!varset{var=skill.maxdepth}
+  - projectile{fo=true;tickInterpolation=5;syo=0;sfo=0;
+    onStart=test-fractal-start;
+    onTick=test-fractal-tick;
+    onEnd=test-fractal-end;
+    ham=true;v=50;MaxRange=<skill.range>;i=1;g=0;hR=0.1;vR=0.1;hnp=true;sb=false}
+    
+test-fractal-start:
+  Skills: 
+  - message{m="<skill.var.currentdepth> <skill.var.maxdepth>"} @self
+  - setvar{var=skill.currentdepth;value=<skill.var.currentdepth>+1}
+  - setblock{m=sea_lantern;md=0} @origin 
+#  - e:p{p=end_rod;amount=1;size=0.8;speed=0;hS=0;vS=0} @origin
+
+test-fractal-tick:
+  Skills: 
+ # - e:p{p=dust_color_transition;color1=#FF0000;color2=#6C2DC7;amount=1;size=0.8;speed=0;hS=0;vS=0} @origin
+  - setblock{m=blue_stained_glass;md=0} @origin{conditions=[ - blocktype{type=air} true ]}
+  #@@origin{conditions=[ - inblock{b=AIR} ]}
+
+
+test-fractal-end:
+  Conditions:
+  - variableInRange{var=skill.currentdepth;value=<<skill.var.maxdepth>} true
+  Skills:
+  - skill{s=test-fractal-target} @RLNT{r=0;s=0;a=<random.3to5>}
+  - setblock{m=glowstone;md=0} @origin{conditions=[ - blocktype{type=air,blue_stained_glass} true ]}
+
+#test-fractal-target1:
+#  Skills:
+#  - skill{s=test-fractal-target2} @RLNT{r=0;s=0;a=<random.2to5>}
+
+test-fractal-target:
+  Skills:
+  - skill{s=test-fractal-fire;damage=2.5;range=64;origin=@origin} @targetedlocation{yo=<random.-4to4>;xo=<random.-4to4>;zo=<random.-4to4>}
+# - e:p{p=reddust;amount=1;size=0.8;speed=0;hS=0;vS=0}
+
+
+# - skill{s=test-fractal-fire;damage=2.5;range=12;origin=@origin} 
+

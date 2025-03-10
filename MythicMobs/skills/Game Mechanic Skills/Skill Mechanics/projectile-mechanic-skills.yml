@@ -1,0 +1,56 @@
+# Generic Projectile Shot
+arrow_spread-exec:
+  Skills:
+  - skill{s=projectile_spread-exec}
+
+projectile_spread:
+  Skills:
+  - skill{s=projectile_spread-exec}
+
+projectile_spread-exec:
+  Skills:
+  - setvar{var=arc;value=<skill.arc|180>}
+  - setvar{var=points;value=<skill.points|32>}
+
+  - setvar{var=duration;value=<skill.duration|0>}
+  - setvar{var=radius;value=<skill.radius|6>;type=FLOAT}
+
+  - setvar{var=yaw;value=<skill.yaw|0>}
+  - setvar{var=pitch;value=<skill.pitch|0>}
+  - setvar{var=roll;value=<skill.roll|0>}
+  
+  - setvar{var=twoside;value="<skill.twoside|true>";type=STRING}
+  - setvar{var=roll;value="<random.0to1>*180+<skill.var.roll>"} ?varequals{var=twoside;value=true}
+  
+  - setvarloc{var=originloc;v=@origin}
+  - setvar{var=iteration;value="0";type=INTEGER}
+
+  - slash{fromorigin=true;a=<skill.var.arc>;w=<skill.var.radius>;h=<skill.var.radius>;p=<skill.var.points>;
+    yaw=<skill.var.yaw>;pitch=<skill.var.pitch>;roll=<skill.var.roll>;duration=<skill.var.duration>;
+    mpd=false;dtt=true;fo=0;yo=0;
+    oP=projectile_spread-fire_logic}
+    
+projectile_spread-fire_logic:
+  Skills:
+  - vskill{fo=true;origin=@variablelocation{var=originloc};s=<skill.id|projectile-fire>} @targetedlocation
+
+# Piercing Logic
+
+pierce-init:
+  Skills:
+  - setvar{var=pierce;val=<skill.pierce|2>;type=INTEGER} @self
+  - setvar{var=hits;val=0;type=INTEGER} @self 
+  - message{m=start <skill.var.hits> <skill.var.pierce>} @server ?varequals{val=debug;val=true}
+
+pierce-hit:
+  Skills:
+  - setvar{var=hits;val="<skill.var.hits>+1";type=INTEGER} @self
+  - message{m=test <skill.var.hits> <skill.var.pierce>} @server ?varequals{val=debug;val=true}
+  - skill{s=pierce-endprojectile}
+  
+pierce-endprojectile:
+  Conditions:
+  - ( varinrange{var=hits;val=><skill.var.pierce>} || varequals{var=hits;val=<skill.var.pierce>} )
+  Skills:
+  - message{m=pierce over} @self ?varequals{val=debug;val=true}
+  - endprojectile 

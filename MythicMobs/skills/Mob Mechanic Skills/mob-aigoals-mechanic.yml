@@ -1,0 +1,19 @@
+# ai-idle:
+#   Skills:
+#  # - resetAI
+
+# ai-alert:
+#   Skills:
+#   - runaigoalselector{goal=clear}
+#   - runaigoalselector{goal=randomstroll}
+#   - runaigoalselector{goal=randomlookaround}
+
+# ai-melee:
+#   Skills:
+#   - runaigoalselector{goal=clear}
+#   - runaigoalselector{goal=meleeattack{attackReach=3}}
+
+# ai-combat-bow:
+#   Skills:
+#   - runaigoalselector{goal=clear}
+#   - runaigoalselector{goal=meleeattack{attackReach=3}}

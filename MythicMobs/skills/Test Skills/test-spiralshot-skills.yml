@@ -1,0 +1,40 @@
+test-spiralshot-exec:
+  Skills:
+  - skill{s=test-spiralshot-fire;branch=true;origin=@SelfEyeLocation{fo=-0.5;yo=-0.2}} @forward{f=12;uel=true}
+
+test-spiralshot-fire:
+  Skills:
+  - sound{s=item.trident.return;pitch=2;volume=0.9} @self
+  - setvariable{var=skill.iterations;value=0;type=INTEGER}
+  - projectile{fo=true;tickInterpolation=5;syo=0;sfo=0;
+    onTick=test-spiralshot-tick;
+    onHit=test-spiralshot-hit-entity;
+    onEnd=test-spiralshot-hit;
+    ham=true;v=100;MaxRange=<skill.range|64>;i=1;g=0;hR=0.5;vR=0.5;hnp=true;se=false}
+
+test-spiralshot-tick:
+  Skills:
+  - setvariable{var=skill.iterations;value="<skill.var.iterations>+1"}
+  - setvariable{var=skill.radius;value="1";type=FLOAT}
+  - setvarloc{var=skill.originloc;v=@origin}
+  - slash{fromorigin=true;origin=@origin;mpd=false;dtt=true;fo=0;yo=0;
+    angle=360;points=3;w=<skill.var.radius>;h=<skill.var.radius>;duration=0;pitch=90;roll="<skill.var.iterations>*24";
+    oP=[
+    - e:p{fo=true;origin=@VariableLocation{var=skill.originloc};p=small_flame;a=1;directional=true;speed=0.1} @targetedlocation
+    ]} @ProjectileForward{f=4}
+
+test-spiralshot-hit:
+  Skills:
+  - e:p{p=enchanted_hit;amount=4;speed=0.4;hS=0.25;vS=0.25} @origin
+  - e:p{p=soul_fire_flame;amount=3;speed=0.1;hS=0;vS=0}
+
+test-spiralshot-hit-entity:
+  Skills:
+  - damage{a=<skill.damage|6>;ia=true;pi=true;element=ARCANE} 
+  - skill{s=test-spiralshot-hit-sfx} @self
+  - skill{s=test-spiralshot-hit-sfx} @origin
+
+test-spiralshot-hit-sfx:
+  Skills:
+  - sound{s=entity.player.attack.knockback;pitch=2}
+  - sound{s=entity.player.attack.crit;pitch=4} 

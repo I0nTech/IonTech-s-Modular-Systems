@@ -1,0 +1,11 @@
+armor:
+  Options:
+   PreventDropping: false
+   KeepOnDeath: false
+   PreventAnvil: true
+   PreventEnchanting: true
+   Unbreakable: true
+   Hide:
+   - UNBREAKABLE
+   - ARMOR_TRIM
+   - DYE

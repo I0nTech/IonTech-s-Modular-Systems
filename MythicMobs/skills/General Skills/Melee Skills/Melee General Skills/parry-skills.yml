@@ -1,0 +1,39 @@
+parry-exec:
+  Conditions:
+  - hasaura{aura=parry-start-cd} castinstead parry-cast
+  Skills: 
+  - sound{s=item.armor.equip_generic;p=1.6;v=2}
+  - onDamaged{auraname=parry;d="<skill.duration|1>*20";i=1;ma=true;sync=true;desot=false;
+    bt=true;bartimertext="Parry";
+    ot=[
+      - potion{t=slow;d=3;l=3;p=false;icon=false} 
+      - potion{t=jump;d=3;l=-5;p=false;icon=false} 
+      - potion{t=slow_digging;d=3;l=20;p=false;icon=false} 
+    ];
+    oh=[
+      - skill{s=parry-cast}
+    ];
+    oe=[
+      - skill{s=spell-cooldown;branch=true;
+        name="Parry";
+        id=parry-start;
+        spellcooldown=<skill.spellcooldown|4>}
+    ];m=0} @self
+  
+parry-cast:
+  Skills:
+  - removeaura{aura=parry} ?hasaura{aura=parry}
+  - skill{s=spell-cast;branch=true;
+    name="Parry";
+    id=parry-start;
+    spellcooldown=1} @self
+
+parry-start:
+  Skills:
+  - setNoDamageTicks{ticks=20;sync=true} 
+  - throw{v=5;vy=1.2} @trigger{conditions=[ - distance{d=<3} ]}
+  - sound{s=item.shield.block}  
+  - e:p{p=SPARK;a=4;hs=0.3;vs=0;y=1;speed=2;fo=0.4} 
+  - message{m="&fYour attack was &4Parried&f!"} @trigger
+  - setNoDamageTicks{ticks=20} 
+

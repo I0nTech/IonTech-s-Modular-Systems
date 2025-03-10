@@ -1,0 +1,21 @@
+vfx-slash_impact:
+  Skills:
+#  - sudoskill{s=[
+#    - skill{s=vfx-slash_impact-summon} @forward{uel=true;yo=-0.2;f=0.4}
+#    ]} @targeted
+
+vfx-slash_impact-summon:
+  Skills:
+#  - summon{t=vfx_base;os=false;sip=true;then=[
+#    - sudoskill{s=[ - skill{s=vfx-slash_impact-init} @self ]} @targeted
+#    ]}
+
+vfx-slash_impact-init:
+  Skills:
+#  - model{mid=<skill.type|vfx_slash_impact>}
+#  - state{mid=<skill.type|vfx_slash_impact>;s=<skill.state|impact>;speed=<skill.speed|2>;loop=HOLD}
+#  - brightness{b=15;s=15}
+#  - tint{m=<skill.type|vfx_slash_impact>;c=<skill.color|<skill.impact_color|FFFFFF>>}
+#  - scale{s=<skill.scale|1>}
+#  - delay 10
+#  - remove

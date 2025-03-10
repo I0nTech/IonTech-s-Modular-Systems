@@ -1,0 +1,27 @@
+#Mob Eyeglow Attack Indicator, can run a skill upon ending.
+
+mob-target-test:
+  Skills:
+  - skill{s=mob-target-exec;duration=2;id=manabolt-exec} @self 
+
+mob-target-exec:
+  Conditions:
+  - hasaura{auraname=mob-targeting} false
+  TargetConditions:
+  - lineofsight
+  Skills:
+  - aura{auraname=mob-targeting;d="<skill.duration|1>*20";i=2;ma=true;desot=false;
+    os=[ - message{m="&7[<#8B0000><b>!&r&7]&r <caster.name>&f is Targeting you with <#ff00ff><skill.name|Unknown>!"} @target ];
+    ot=[ - skill{s=mob-target-tick} @target ];
+    oe=[ - vskill{s=<skill.id>;branch=true} ]} @self
+
+mob-target-tick: 
+  TargetConditions:
+  - lineofsight orelsecast mob-target-interrupt
+  Skills:
+  - effect:particleline{fo=true;origin=@SelfEyeLocation;p=reddust;size=0.5;a=1;speed=0.1;db=0.5;tyo=1.5} @target
+#  - message{m="<skill.var.aura-duration>"} @PIR{r=1200}
+mob-target-interrupt: 
+  Skills:
+  - removeaura{aura=mob-targeting;delay=1} @self
+#  - message{m="interrupted <skill.var.aura-duration>"} @PIR{r=1200}

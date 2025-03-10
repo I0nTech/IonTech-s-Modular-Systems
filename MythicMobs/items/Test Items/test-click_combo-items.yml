@@ -1,0 +1,37 @@
+test-click_combo-normal:
+  Id: BLAZE_ROD
+  Template: click_combo-normal
+  Display: 'Click Combo Wand'
+  Lore: "Normal Varient"
+  Skills:
+  - message{m="test 2"} @self ~onSwing ?!hasaura{aura=clickcombo-input}
+ # - skill{s=mana_bolt-cast;delay=1} @self ~onSwing ?!hasaura{aura=clickcombo-input}
+  - skill{s=click_combo;type=NORMAL;
+    duration=10;debug=true;
+    LLL=cooldown-cast-1;
+    LRR=cooldown-cast-2;
+    LLR=cooldown-cast-3;
+    LRL=[];
+    RRR=[];
+    RLL=[];
+    RRL=[];
+    RLR=[]} @self ~onUse
+
+test-click_combo-quick:
+  Id: BLAZE_ROD
+  Template: click_combo-quick
+  Display: 'Click Combo Wand'
+  Lore: "Quick Varient"
+  Skills:
+  - message{m="test quick"} @self ~onSwing ?!hasaura{aura=clickcombo-input}
+ # - skill{s=arcane_bolt-cast;delay=1} @self ~onSwing ?!hasaura{aura=clickcombo-input}
+  - skill{s=click_combo;type=QUICK;
+    duration=10;debug=true;
+    SWAPL=cooldown-cast-1;
+    SWAPR=cooldown-cast-2;
+    SWAPDROP=cooldown-cast-3;
+    SWAPSWAP=[];
+    SWAPL+DOWN=[];
+    SWAPR+DOWN=[];
+    SWAPDROP+DOWN=[];
+    SWAPSWAP+DOWN=[]} @self ~onPressF

@@ -1,0 +1,25 @@
+dummy_controller:
+  Id: STICK
+  Display: 'Dummy Controller'
+  Lore: "Controls dummies."
+  Skills:
+  - signal{s=reset} @ENO{r=100} ~onSwing ?equipslot{slot=HAND}
+  - signal{s=move} @ENO{r=100} ~onUse ?equipslot{slot=HAND}
+
+signal_wand:
+  Template: weapon
+  Id: STICK
+  Display: "Signal Wand"
+  NBT:
+    activespell: int/1
+    maxspells: int/9
+  Skills:
+  #- skill{s=spell-cycle-cast;branch=true} @self ~onSwing
+  - skill{s=[
+    - am{m="Signalling test_<caster.item.hand.nbt.activespell>"} @self
+    - signal{s="test_<caster.item.hand.nbt.activespell>"}
+    ]} @ENO{r=50} ~onSwing
+  
+  - skill{s=spell-cycle-right;branch=true} @self ~onUse ?!isCrouching
+  - skill{s=spell-cycle-left;branch=true} @self ~onUse ?isCrouching 
+  - setitemdisplay{d="<mythicitem.signal_wand.display> <#C0C0C0>[<#00BCFF><caster.item.nbt.activespell><#C0C0C0>]"} ~onUse 

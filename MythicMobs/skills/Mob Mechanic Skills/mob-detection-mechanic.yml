@@ -1,0 +1,147 @@
+# Detection State System
+
+# State dependent on Threat of targets 
+
+# 0: No alert / Idle
+# 1: Alert
+# 2: Searching
+# 3: Combat
+
+
+# Idle mobs patrol / are unalert.
+#  Will enter Alert if a target is out of FOV / LOS, close by while not sneaking
+#  Will enter Combat if entering Combat 
+
+# Alert mobs look around to find targets near them, 
+#  Sets tracked location to player location
+#  Will enter Searching if target in FOV & LOS for very short duration
+#  Will enter combat if target in FOV & LOS  
+#  Will enter idle if no target found after duration expires
+
+# Searching mobs move to the tracked location and begin patrolling
+#  While searching, all behaviours of Alert are active. 
+#  Will enter Alert if no target found after duration expires
+#  If player nearby while uncrouched while searching, enters combat. 
+
+# Combat mobs move to using Combat AI & Behaviours. 
+#  Enters Searching after targets are out of LOS. 
+#  Enters Alert if no targets are found. 
+
+detection-init:
+  Skills:
+  - setvar{var=caster.alert_duration;val="<caster.var.alert_duration|10>*20";type=INTEGER}
+  - setvar{var=caster.search_duration;val="<caster.var.search_duration|<caster.var.alert_duration>/20>*20";type=INTEGER}
+  - skill{s=detection-idle}
+
+detection-tick:
+  Skills:
+  - skill{s=detection-evaluate}
+
+detection-evaluate:
+  Skills:
+  - aura{name=combat;type=detection;d=20;ma=true;desot=true;rd=true;
+    ot=[ 
+      - tracklocation @targetlocation 
+      - sudoskill{cat=true;s=[ - removeaura{name=combat} @trigger ]} @target{c=[ - distance{d=>3} - (haspotioneffect{t=INVISIBILITY} && haspotioneffect{t=GLOWING} false) ]}
+      ];
+    oe=[ 
+      - message{m=Combat aura ended} @pir{r=100} ?varequals{var=caster.debug;val=true}
+      - clearthreat ?incombat
+      ]} @self{c=[ - (targetinlineofsight && incombat) true ]}
+
+detection-enter_combat:
+  Skills:
+  - setvar{var=caster.last_threat;val=<target.threat>;t=FLOAT} @target
+  - message{m=Entered Combat with <caster.tt.top>} @pir{r=100} ?varequals{var=caster.debug;val=true}
+  - skill{s=detection-combat}
+
+detection-change_target:
+  Skills:
+  - message{m=Changed Target to <caster.tt.top>} @server
+
+detection-drop_combat:
+  Skills:
+  - setvar{var=caster.last_threat;val=<target.threat>;t=FLOAT} @target
+  - message{m=Exited Combat with <caster.tt.top>} @pir{r=100} ?varequals{var=caster.debug;val=true}
+  - skill{s=detection-search} ?!hasaura{name=combat}
+
+detection-reset:
+  Skills:
+  - threat{mode=reset} @target
+  - setvar{var=caster.last_threat;val=<target.threat>;t=FLOAT} @target
+  - message{m=Threat Reset <caster.var.last_threat> <caster.tt.top>} @pir{r=100} ?varequals{var=caster.debug;val=true}
+
+detection-debug:
+  Skills:
+  - setvar{var=caster.last_threat;val=<target.threat>;t=FLOAT} @target
+  - message{m=State <caster.var.alert_state> Alert Duration <caster.var.alert_duration> Search Duration <caster.var.search_duration>}
+  - message{m=Threat of Target <caster.var.last_threat> is <caster.tt.top>} @pir{r=100} ?varequals{var=caster.debug;val=true}
+
+
+# detection-switch:
+#   Skills:
+#   - switch{condition=vareequals{var=caster.alert_state;val=<case>};
+#     cases=
+#       case 0=[ - skill{s=detection-idle} ]
+#       case 1=[ - skill{s=detection-alert} ]
+#       case 2=[ - skill{s=detection-search} ]
+#       case 3=[ - skill{s=detection-combat} ]
+#     } @self
+
+
+#  - skill{s=detection-evaluate}
+
+detection-idle:
+  Conditions:
+  - incombat false
+  - varequals{var=caster.alert_state;val=0} false
+  Skills:
+  - clearThreat ?inCombat
+  - setvar{var=caster.alert_state;val=0}
+  - signal{s=detection_idle} @self
+  - speak{m="Idle";offset=0.2f} ?varequals{var=caster.debug;val=true}
+
+detection-alert:
+  Conditions:
+  - varequals{var=caster.alert_state;val=1} false
+  Skills:
+  - setvar{var=caster.alert_state;val=1}
+  - speak{m="&fAlert";offset=0.2f} ?varequals{var=caster.debug;val=true}
+  - signal{s=detection_alert}
+
+  - aura{name=alert;type=detection;d=<caster.var.alert_duration>;ma=true;desot=false;
+    oe=[ 
+    - skill{s=detection-idle}
+    ]}
+
+detection-search:
+  Conditions:
+  - varequals{var=caster.alert_state;val=2} false
+  Skills:
+  - setvar{var=caster.alert_state;val=2}
+  - signal{s=detection_search}
+  - speak{m="&fSearch";offset=0.2f} ?varequals{var=caster.debug;val=true}
+
+  - path{d=<caster.var.search_duration>;speed=1;tolerance=1.5;path=@trackedlocation;desot=true;
+    onGoal=[
+    - signal{s=detection_search_end}
+    - speak{m="&fReached Search Target";offset=0.2f} ?varequals{var=caster.debug;val=true}
+    - skill{s=detection-alert} 
+    ]} @self 
+    
+detection-combat:
+  Conditions:
+  - varequals{var=caster.alert_state;val=3} false
+  - incombat
+  Skills:
+  - setvar{var=caster.alert_state;val=3}
+  - removeaura{name=#pathing} 
+  - removeaura{name=alert}
+  - signal{s=detection_combat} @self
+  - speak{m="&fCombat";offset=0.2f} ?varequals{var=caster.debug;val=true}
+
+# detection-search_area:
+#   Skills:
+#   - aura{name=search_area;d=<caster.var.alert_duration>;ma=true;desot=false;
+#     ot=[ - removeaura{aura=alert} ?hasaura{aura=alert} ?incombat ];
+#     oe=[ - skill{s=detection-alert} ?!incombat ]} 

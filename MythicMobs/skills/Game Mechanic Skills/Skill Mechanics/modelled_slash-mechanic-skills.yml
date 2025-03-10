@@ -1,0 +1,98 @@
+modelled_slash-test_cast:
+  Skills:
+  - skill{s=modelled_slash-exec;origin=@selfeyelocation{yo=-0.2};
+    roll=<random.-24to24>;arc=180;
+    twoside=true;instant=true;radius=4;duration=7;
+    model=vfx_ghost_slash;pid=body;scale=4} @forward{f=12;yo=-0.2;uel=true}
+
+modelled_slash-sweep_left:
+  Skills:
+  - skill{s=modelled_slash-exec;origin=@selfeyelocation{yo=-0.2};
+    roll=<random.-24to24>;arc=<skill.arc|180>;twoside=false;hitboxsize=<skill.hitboxsize|3/10>;
+    instant=<skill.instant|true>;duration=<skill.duration|7>} @forward{f=12;yo=-0.2;uel=true}
+
+modelled_slash-sweep_right:
+  Skills:
+  - skill{s=modelled_slash-exec;origin=@selfeyelocation{yo=-0.2};
+    roll="180+<random.-24to24>";arc=<skill.arc|180>;twoside=false;hitboxsize=<skill.hitboxsize|3/10>;
+    instant=<skill.instant|true>;duration=<skill.duration|7>} @forward{f=12;yo=-0.2;uel=true}
+
+modelled_slash-crit:
+  Skills:
+  - skill{s=modelled_slash-exec;origin=@selfeyelocation{yo=-0.2};
+    roll="-90+<random.-12to12>";arc=<skill.arc|180>;twoside=false;
+    instant=<skill.instant|true>;duration=<skill.duration|7>;hitboxsize=<skill.hitboxsize|2/5>;
+    hit=<skill.hit|slash-hit_crit>} @forward{f=12;yo=-0.2;uel=true;lockpitch=true}
+
+modelled_slash-uppercut:
+  Skills:
+  - skill{s=modelled_slash-exec;origin=@selfeyelocation{yo=-0.2};
+    roll="90+<random.-12to12>";arc=<skill.arc|180>;twoside=false;
+    instant=<skill.instant|true>;duration=<skill.duration|7>;hitboxsize=<skill.hitboxsize|2/5>;
+    denykbonhit=false;scalekb=false;kb=<skill.kby|5>;kby=<skill.kby|8>;
+    hit=<skill.hit|slash-hit_uppercut>} @forward{f=12;yo=-0.2;uel=true;lockpitch=true}
+
+modelled_slash-spin:
+  Skills:
+  - skill{s=modelled_slash-exec;increment=0;
+    arc=<skill.arc|360>;twoside=false;hitboxsize=<skill.hitboxsize|3/10>;
+    instant=<skill.instant|true>;duration=<skill.duration|5>}
+
+# To fix:
+# Mage Slash (broken yaw)
+# Red Slash (inverted yaw)
+# Cleric Slash (inverted direction and yaw)
+
+modelled_slash-exec:
+  Skills:
+  - skill{s=modelled_slash-summon;branch=true}
+
+modelled_slash-summon:
+  Skills:
+  - skill{s=modelled_slash-init}
+  - skill{s=slash-exec;
+    vfx=<skill.vfx|none>;
+    roll=<skill.var.roll>;duration=<skill.duration|7>;twoside=false} @targetedlocation
+  - summon{t=vfx_base;sip=true;os=false;
+    then=[
+      - sudoskill{s=modelled_slash-start} @targeted
+    ]} @origin
+
+modelled_slash-init:
+  Skills:
+  - skill{s=slash-init}
+  - setvar{var=duration;val="<skill.duration|7>"}
+
+  - setvar{var=rotspeed;val=<skill.rotspeed|0>;type=FLOAT}
+  - setvar{var=model;val=<skill.model|vfx_arcane_slash>;type=STRING}
+  - setvar{var=pid;val=<skill.pid|bone>;type=STRING}
+  - setvar{var=scale;val=<skill.scale|<skill.var.radius>>;type=FLOAT}
+  - setvar{var=increment;val=<skill.increment|1>;type=INTEGER}
+  
+  - setvar{var=roll;val="<random.0to1>*180+<skill.var.roll|0>"} ?varequals{var=twoside;val=true}
+  - setvar{var=pitchoffset;val="<skill.pitchoffset|0>";type=STRING}
+  - setvar{var=yawoffset;val="<skill.yawoffset|0>";type=STRING}
+  - setvar{var=rolloffset;val="<skill.rolloffset|180->";type=STRING}
+#  - message{m=<skill.var.pitchoffset> <skill.var.yawoffset> <skill.var.rolloffset>} @self
+
+modelled_slash-start:
+  Skills:
+  - setvar{var=pitch;val="<skill.var.pitchoffset><skill.var.pitch>"} ?!varequals{var=pitchoffset;val=0}
+  - setvar{var=yaw;val="<skill.var.yawoffset><skill.var.yaw>"} ?!varequals{var=yawoffset;val=0}
+  - setvar{var=roll;val="<skill.var.rolloffset><skill.var.roll>"} ?!varequals{var=rolloffset;val=0}
+#  - message{m=<skill.var.pitch> <skill.var.yaw> <skill.var.roll>} @self
+  - aura{d=<skill.var.duration>;i=1;
+    os=[
+    - vfx{mid="<skill.var.model>_1";pid=<skill.var.pid>;v=false}
+    - vfx{mid="<skill.var.model>";pid=<skill.var.pid>;v=false} ?varequals{var=increment;val=0}
+    - VFXRot{rel=true;x=<skill.var.pitch>;y=<skill.var.yaw>;z=<skill.var.roll>}
+    - VFXScale{x=<skill.var.scale>;y=1;z=<skill.var.scale>}
+    - vfxtint{c=<skill.color|FFFFFF>}
+    - VFXSetVis{v=true}
+    ];
+    ot=[
+    - setvar{var=caster.iteration;val="<caster.var.iteration|1>+<skill.var.increment>"}
+    - VFXChangeModel{mid="<skill.var.model>_<caster.var.iteration>";pid=<skill.var.pid>}
+    - vfxtint{c=<skill.color|FFFFFF>}
+    ];
+    oe=[ - remove ]} @self

@@ -1,0 +1,127 @@
+mob_spawner-init:
+  Skills:
+  - setvar{var=caster.spawn_weights;value=none;t=STRING} @self ?!varisset{var=caster.spawn_weights}
+  - setvar{var=caster.spawning_state;value=inactive;t=STRING} @self
+  - setvar{var=caster.current_wave;value=0}
+  - setvar{var=caster.break_duration;val=<caster.var.break_duration|1>*20;t=FLOAT}
+
+mob_spawner-debug:
+  Conditions:
+  - varequals{var=caster.debug;value=true}
+  Skills:
+  - message{m="debug <caster.stance>"} @pir{r=48}
+
+mob_spawner-tick:
+  Conditions:
+  - (varequals{var=caster.spawning_state;val=combat} && children{a=0}) castinstead mob_spawner-wave_end
+  Skills:
+  - skill{s=mob_spawner-combat} ?varequals{var=caster.spawning_state;val=combat}
+
+mob_spawner-start:
+  Conditions:
+  - varequals{var=caster.spawn_weights;val=none} false
+  - varequals{var=caster.spawning_state;val=inactive} true
+  Skills:
+  - setvar{var=caster.spawning_state;val=wave_end;type=STRING}
+  - skill{s=mob_spawner-debug}
+
+  # Start the first wave.
+  - signal{s=spawner_start} @self
+  - delay <caster.var.break_duration>
+  - skill{s=mob_spawner-start_wave}
+
+mob_spawner-start_wave:
+  Conditions:
+  - varequals{var=caster.spawning_state;val=wave_end} true
+  - (variableInRange{var=caster.current_wave;value=><caster.var.max_wave>} ||
+     variableEquals{var=caster.current_wave;value=<caster.var.max_wave>}) castinstead mob_spawner-finish
+  Skills:
+#  - setname{n="<gray>[<dark_purple>Spawning!<gray>]"}
+  - setvar{var=caster.current_wave;value="<caster.var.current_wave>+1";t=INTEGER}
+
+  - setvar{var=caster.power_level;value="<caster.var.current_wave><caster.var.wave_scaling>";type=FLOAT}
+  - setvar{var=caster.wave_power;value="<caster.var.power_level>";type=FLOAT}
+  - message{m="Current Power Level <caster.var.power_level>"} @pir{r=48} ?varequals{var=caster.debug;value="true"}
+
+  - setvar{var=caster.spawning_state;val=wave_spawning;type=STRING}
+  - skill{s=mob_spawner-debug}
+
+  - signal{s=spawner_wave_start} @self
+
+  - skill{s=mob_spawner-sfx} @PIR{r=<caster.var.active_radius>}
+  - skill{s=mob_spawner-sfx} @Origin
+
+  - delay 10
+  - skill{s=mob_spawner-spawn_loop} @self
+
+mob_spawner-sfx:
+  Skills:
+  - sound{s=entity.wither.spawn;p=1.7;v=2}
+  - sound{s=ambient.crimson_forest.mood;p=1.2;v=2}
+  - sound{s=entity.wither_skeleton.ambient;p=2;v=1
+      
+mob_spawner-spawn_loop:
+  Conditions:
+  - variableInRange{var=caster.wave_power;value=>0} orelsecast mob_spawner-spawning_complete
+  - varequals{var=caster.spawning_state;val=wave_spawning} true
+  Skills:
+  - vskill{s=<caster.var.spawn_weights>;branch=true}
+  - message{m="Remaining Power <caster.var.wave_power>"} @pir{r=48} ?varequals{var=caster.debug;value="true"}
+  - delay 3
+  - skill{s=mob_spawner-spawn_loop} @self
+
+#Spawn Logic for Spawn Weights skills. 
+mob_spawner-spawn:
+  Skills:
+  - setvariable{var=mode;value=<skill.mode|NORMAL>;type=STRING}    
+  - setvariable{var=caster.wave_power;value="<caster.var.wave_power>-<skill.weight|1>"}    
+  - summon{t="<skill.type|none>";a=1;sip=true;os=true} @RLNT{r="<caster.var.spawn_radius>*0.628";a=1}
+#  - skill{s=summonorb-target} @RLNT{r="<caster.var.active_radius>*0.6";a=1;yo=48}
+
+mob_spawner-spawning_complete:
+  Skills:
+  - delay 10
+  - setvar{var=caster.wave_mobs;value=<caster.children.size>;t=INTEGER} @self
+  - message{m="Spawning Done! <caster.children.size>/<caster.var.wave_mobs> spawned."} @pir{r=48} ?varequals{var=caster.debug;value="true"}
+  - setvar{var=caster.spawning_state;val=combat;type=STRING} @self
+  
+mob_spawner-combat:
+  Skills:
+  - signal{s=spawner_combat} @self
+#- setname{n="<gray>[<white><caster.children.size>/<caster.var.wave_mobs><gray>]"}
+  
+mob_spawner-wave_end:
+  Conditions:
+  - varequals{var=caster.spawning_state;val=combat}
+  Skills:
+#  - setname{n="Wave <gray>[<#FF00FF><caster.var.current_wave><#7c00ff>/<#FF00FF><caster.var.max_wave><gray>] <white>Completed."}
+  - setvar{var=caster.spawning_state;val=wave_end;type=STRING}
+  - signal{s=spawner_wave_end} @self
+  - delay <caster.var.break_duration>
+  - skill{s=mob_spawner-start_wave}
+  
+mob_spawner-deactivate:
+  Conditions:
+  - varequals{var=caster.spawning_state;val=inactive} false
+  Skills:
+  - setvar{var=caster.spawning_state;val=inactive;type=STRING}
+  - delay 20
+
+  #Reset all gameplay variables.
+  - setvar{var=caster.current_wave;value=0}
+  - variableunset{var=caster.wave_power}
+  - variableunset{var=caster.wave_mobs}
+  - variableunset{var=caster.power_level}
+
+  #Finish Shutdown.
+  - message{m="deactivated"} @pir{r=48} ?varequals{var=caster.debug;value="true"}
+  - remove @children
+  
+mob_spawner-finish:
+  Skills:
+#  - setname{n="&k<white>[<dark_purple>Completed!<white>]"}
+  - message{m="All waves complete!"} @pir{r=48} ?varequals{var=caster.debug;value="true"}
+  - delay 10
+  - skill{s=mob_spawner-deactivate} @self
+  - signal{s=spawner_finish} @self
+#  - remove @self

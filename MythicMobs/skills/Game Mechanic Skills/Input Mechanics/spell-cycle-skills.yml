@@ -1,0 +1,48 @@
+spell-cycle-cast:
+  Skills:
+#  - message{m="<trigger.item.hand.nbt.activespell>"}
+  - setvar{var=skill.cycleindex;val="<trigger.item.hand.nbt.activespell>"}
+ # - vskill{s=<trigger.item.hand.nbt.spells.<skill.var.cycleindex>.id>}
+ 
+  - switch{condition=variableequals{var=skill.cycleindex;val=<case>};
+    cases=
+       case 1=[ - vskill{s=<trigger.item.hand.nbt.spells.1.id>} ]
+       case 2=[ - vskill{s=<trigger.item.hand.nbt.spells.2.id>} ]
+       case 3=[ - vskill{s=<trigger.item.hand.nbt.spells.3.id>} ]
+       case 4=[ - vskill{s=<trigger.item.hand.nbt.spells.4.id>} ]
+       case 5=[ - vskill{s=<trigger.item.hand.nbt.spells.5.id>} ]
+       case 6=[ - vskill{s=<trigger.item.hand.nbt.spells.6.id>} ]
+       case 7=[ - vskill{s=<trigger.item.hand.nbt.spells.7.id>} ]
+       case 8=[ - vskill{s=<trigger.item.hand.nbt.spells.8.id>} ]
+       case 9=[ - vskill{s=<trigger.item.hand.nbt.spells.9.id>} ]
+    } @self
+#  - vskill{s="spell-cycle-<skill.var.cycleindex>"} 
+ # - message{m="<trigger.item.hand.nbt.spells>"}
+
+spell-cycle-1:
+  Skills:
+  - vskill{s=<trigger.item.hand.nbt.spells.1.id>}
+ # - message{m="Cast <trigger.item.hand.nbt.spells.1.name>"}
+
+spell-cycle-checkbounds:
+  Skills:
+  #- setvar{var=skill.maxcycleindex;val=}
+  - sound{s=block.stone_pressure_plate.click_on;v=0.3;p=1.9;audience=self}
+  - setvar{var=skill.cycleindex;val=1} ?varinrange{var=skill.cycleindex;val=><trigger.item.hand.nbt.maxspells>}
+  - setvar{var=skill.cycleindex;val=<trigger.item.hand.nbt.maxspells>} ?varinrange{var=skill.cycleindex;val=<1}
+#  - am{m="Cycled to Spell <#C0C0C0>[<#00BCFF><skill.var.cycleindex><#C0C0C0>]"}
+
+spell-cycle-right:
+  Skills:
+#  - message{m="Cycled Right"}
+  - setvar{var=skill.cycleindex;val="<trigger.item.hand.nbt.activespell>+1"}
+  - skill{s=spell-cycle-checkbounds}
+  - setItemNBT{key=activespell;value="<skill.var.cycleindex>"}
+
+spell-cycle-left:
+  Skills:
+ # - message{m="Cycled Left"}
+  - setvar{var=skill.cycleindex;val="<trigger.item.hand.nbt.activespell>-1"}
+  - skill{s=spell-cycle-checkbounds}
+  - setItemNBT{key=activespell;value="<skill.var.cycleindex>"}
+

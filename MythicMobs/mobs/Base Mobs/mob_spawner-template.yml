@@ -1,0 +1,28 @@
+mob_spawner:
+  Type: ARMOR_STAND
+  Display: 'Wave Spawner System Base'
+  Options:
+    Despawn: false
+  Variables:
+    debug: false
+    max_wave: 3
+    wave_scaling: "*2+3"
+    break_duration: 3
+    spawn_radius: 6
+    spawn_weights: "mob_spawner-spawn-default"
+    color1: "#7c00ff"
+    color2: "#ff00f4"
+  Skills:
+  - skill{s=mob_spawner-init} @self ~onSpawn
+  - skill{s=mob_spawner-init} @self ~onLoad
+  - skill{s=mob_spawner-tick} @self ~onTimer:5
+  - skill{s=mob_spawner-start} @self ~onInteract ?varequals{var=caster.debug;val=true}
+  - remove @children ~onDeath
+  
+  - skill{s=mob_spawner-debug} @self ~onSignal:test_1
+#  - message{m="Spawner Started"} @server ~onSignal:spawner_start
+#  - message{m="Spawner Wave Start"} @server ~onSignal:spawner_wave_start
+#  - message{m="Spawner Combat"} @server ~onSignal:spawner_combat
+#  - message{m="Spawner Wave End"} @server ~onSignal:spawner_wave_end
+#  - message{m="Spawner Finish"} @server ~onSignal:spawner_finish
+

@@ -1,0 +1,6 @@
+collapse-cast:
+  Skills:
+  - skill{s=select_target;id=[
+    - blockDestabilize @BIR{radius=<skill.var.radius|8>}
+    - pull{to=true;v=6;origin=@targetedlocation} @NLNO{radius=<skill.var.radius|8>}
+    ]} @self

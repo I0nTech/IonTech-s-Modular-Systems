@@ -1,0 +1,48 @@
+gravity_slam-cast:
+  Skills:
+  - skill{s=select_target;id=[
+    - vskill{s=gravity_slam-exec} @targetedlocation
+    ]} @self
+
+gravity_slam-exec:
+  Skills:
+  - aura{d=10;i=1;ot=[
+    - setvar{var=yaw;value="<skill.var.yaw|0>+24"}
+    - polygon{points=6;scale=<skill.var.radius|8>;db=0.5;mpd=false;
+      yaw="<skill.var.yaw>";
+      oe=[ - e:p{p=DRAGON_BREATH;size=2;fo=true;directional=true;a=1;speed=1} @origin{yo=20} ]} @targetedlocation
+    ]}
+  
+  - sudoskill{s=[ - skill{s=gravity_slam-apply} @self ]} @ENT{r=8}
+
+
+gravity_slam-apply:
+  TargetConditions:
+  - isliving true
+  Skills:
+  - aura{name=gravity_slam;type=stun;d=60;i=1;
+    os=[
+    - lunge{v=0;vy=3}
+    ];
+    ot=[ 
+    - e:p{p=portal;a=2;hs=0.3;vs=0.5;y=1} @selflocation
+    - velocity{m=multiply;x=1;y=0;z=1;relative=false} ?directionalVelocity{y=<-0.001} 
+    ];
+    oe=[
+    - aura{name=throw_down;d=20;i=1;desot=true;
+      os=[
+      - setvar{var=target_y;value=<target.l.y>;type=FLOAT} 
+      - lunge{v=0;vy=-5}
+      ];
+      ot=[
+       - e:p{p=reddust;a=1;color=#A020F0;hs=0.3;vs=0.5;y=1;size=3} @selflocation
+       - removeaura{aura=throw_down} ?onGround
+      ];
+      oe=[
+      - setvar{var=fall_distance;value="max(<skill.var.target_y>-<target.l.y>,0)";type=FLOAT} 
+      - setvar{var=stun_duration;value="min(<skill.var.fall_distance>/10,3)";type=FLOAT} 
+      - message{m="Fall Distance <skill.var.fall_distance> Stun <skill.var.stun_duration>"} @server
+      - skill{s=stun;duration=<skill.var.stun_duration>} @self ?varinrange{var=stun_duration;val=>0.5}
+      ]}
+    ]} 
+ 

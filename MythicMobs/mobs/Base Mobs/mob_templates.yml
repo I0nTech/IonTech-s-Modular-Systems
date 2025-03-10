@@ -1,0 +1,38 @@
+hostile_mob:
+  Type: SKELETON
+  Faction: Hostile
+  Display: 'Base Hostile Mob'
+  Health: 20
+  Damage: 4
+  Options:
+    Despawn: true
+    Silent: true
+    DigOutOfGround: true
+    AlwaysShowName: false
+    PreventRandomEquipment: false
+    PreventItemPickup: true
+    PreventOtherDrops: true
+    PreventJockeyMounts: true
+    PreventTransformation: true
+    PreventSunburn: true
+    FollowRange: 32
+    MovementSpeed: 0.2
+    AttackSpeed: 4
+#  Skills:
+
+hostile_mob-advanced:
+  Type: Husk
+  Display: 'Advanced Hostile Mob'
+  Template: hostile_mob,detection_ai,mob_levelling
+  Health: 20
+  Options:
+    FollowRange: 64
+    MovementSpeed: 0.3
+    AttackSpeed: 4
+  Variables:
+    debug: false
+    equipment_power: 12
+    equipment: equipment-vanilla_melee
+#  Equipment:
+#  - AIR HAND
+#  Skills:

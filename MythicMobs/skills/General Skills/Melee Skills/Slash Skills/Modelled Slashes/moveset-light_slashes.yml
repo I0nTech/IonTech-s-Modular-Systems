@@ -1,0 +1,39 @@
+# Left this here as an example. Models are not included, but I'll trust you guys to figure it out.
+
+moveset-light_slashes-exec:
+  Skills:
+  - skill{s=moveset-exec;maxmoveset=2;reset=2;
+    1=light_slash-sweep_right;
+    2=light_slash-sweep_left;
+    crit=light_slash-crit;
+    uppercut=light_slash-uppercut;
+    cooldown=0.3} @self
+
+light_slash-exec:
+  Skills:
+  - skill{s=modelled_slash-exec;
+    model=vfx_gale_slash;pid=body;arc=180;twoside=false;
+    instant=true;duration=9}
+    
+light_slash-sweep_left:
+  Skills:
+  - skill{s=modelled_slash-sweep_left;model=vfx_light_slash;pid=body;
+    instant=true;duration=9} @self
+
+light_slash-sweep_right:
+  Skills:
+  - skill{s=modelled_slash-sweep_right;model=vfx_light_slash;pid=body;
+    instant=true;duration=9} @self
+
+light_slash-crit:
+  Skills:
+  - skill{s=modelled_slash-crit;model=vfx_light_slash;pid=body;
+    instant=true;duration=9} @self
+
+light_slash-uppercut:
+  Skills:
+  - skill{s=modelled_slash-uppercut;model=vfx_light_slash;pid=body;
+    instant=true;duration=9} @self
+
+
+

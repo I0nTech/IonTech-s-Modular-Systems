@@ -1,0 +1,67 @@
+rally_horn-exec:
+  Skills:
+  - skill{s=rally_horn-calc;duration=20;radius=8} @selflocation
+  
+rally_horn-calc:
+  Skills:
+  - sound{s=item.goat_horn.sound.0;pitch=1;volume=5} @origin 
+  
+  - setvar{var=duration;value="<skill.duration|2>*20";type=FLOAT} @self
+  - setvar{var=radius;value="<skill.radius|8>";type=FLOAT} @self
+#  - setvar{var=points;value="0";type=INTEGER} @self
+  - skill{s=timer-summon;duration=<skill.duration>}
+  - Aura{onTick=rally_horn-tick;interval=1;duration="<skill.var.duration>+1"}
+
+rally_horn-tick:
+  Skills:
+  - skill{s=rally_horn-hit-entity} @ENO{r=<skill.var.radius>}
+  - skill{s=rally_horn-outer_effect;cd=0.5;branch=true} @targetedlocation
+  - skill{s=rally_horn-pulse_effect;duration=1;cd=1;branch=true} @targetedlocation
+
+rally_horn-wisp-fire:
+  Skills:
+  - projectile{fo=true;tickInterpolation=1;syo=0;sfo=0;
+    onTick=rally_horn-wisp-tick;
+    highAccuracyMode=false;v=6;MaxRange=8;i=2;g=0;hR=0;vR=0;hnp=false;hp=false;sb=false}
+
+rally_horn-wisp-tick:
+  Skills:
+  - e:p{p=dust_color_transition;color1=#eddb72;color2=#fff5ba;amount=1;size=0.8;speed=0;hS=0.0;vS=0.0} @origin
+  - setprojectiledirection{repeat=1} @projectileforward{f=5;x="<random.float.-1to1>";y="<random.float.-1.2to1.2>";z="<random.float.-1.2to1.2>"}
+
+rally_horn-pulse_effect:
+  Skills:
+  - setvar{var=radius;value=<skill.radius|8>;type=FLOAT}
+  - setvar{var=currentradius;value=0;type=FLOAT}
+  - setvar{var=counter;value=0;type=INTEGER}
+  - setvar{var=duration;value="<skill.duration|1>*20";type=FLOAT}
+  
+  - aura{d="<skill.var.duration>+2";i=1;
+    ot=[
+    - setvar{var=currentradius;val="<skill.var.radius>/<skill.var.duration>*<skill.var.counter>";type=FLOAT}
+    - setvar{var=counter;val="<skill.var.counter>+1"}
+    - e:p{p=dust_color_transition;color1=#eddb72;color2=#fff5ba;amount=1;size=1} @RAO{r=<skill.var.currentradius>;p="8+2*<skill.var.currentradius>";roty="<skill.var.counter>"}
+    - skill{s=rally_horn-wisp-fire;origin=@targetedlocation} 0.8 @targetedlocation{yo=12}
+    ]}
+  
+rally_horn-outer_effect:
+  Skills:
+  - slash{fromorigin=true;a=360;w=<skill.var.radius>;h=<skill.var.radius>;p=64;
+    yaw=0;pitch=0;roll=0;duration="10";
+    mpd=false;dtt=true;fo=0;yo=0;
+    oP=[
+    - e:p{p=spell_mob_ambient;color=#eddb72;amount=1;speed=1;hs=0.1;vs=0.1}
+    ]}
+
+rally_horn-hit-entity:
+#  TargetConditions:
+#  - hasaura{aura=purify} false
+  Skills:
+#  - skill{s=purify-aura-apply;duration="<skill.duration|2>*3"}
+
+
+
+  
+
+
+  

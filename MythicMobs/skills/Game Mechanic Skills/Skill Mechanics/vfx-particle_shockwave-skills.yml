@@ -1,0 +1,44 @@
+vfx-particle_shockwave-init:
+  Skills:
+  - setvar{var=debug;val=<skill.debug|false>;type=STRING}
+
+  - setvar{var=points;val=<skill.points|8>;type=INTEGER}
+  - setvar{var=radius;val=<skill.radius|1>;type=FLOAT}
+
+  - setvar{var=length;val=<skill.length|1>;type=FLOAT}
+  - setvar{var=speed;val=<skill.speed|1>;type=FLOAT}
+
+  - setvar{var=particle;val=<skill.particle|<skill.p|spark>>;type=STRING}
+  
+  - message{m=points <skill.var.points> <skill.var.radius> <skill.var.length> <skill.var.speed> <skill.var.particle>} @self ?varequals{var=debug;val=true}
+#  - setvar{var=size;val=<skill.size|1>;type=FLOAT}
+#  - setvar{var=color;val=<skill.color|#FFFFFF>;type=STRING}
+#  - setvar{var=color2;val=<skill.color2|<skill.var.color>>;type=STRING}
+
+vfx-particle_shockwave-test:
+  Skills:
+  - skill{s=vfx-particle_shockwave;origin=@forward{f=1;uel=true};debug=true;points=100;length=3;radius=15;particle=cloud} @forward{f=12;uel=true}
+
+vfx-particle_shockwave:
+  Skills:
+  - skill{s=vfx-particle_shockwave-init}
+  - setvarloc{var=origin_loc;val=@targetedlocation} @targetedlocation
+  - e:p{p=end_rod;a=1} @targetedlocation ?varequals{var=debug;val=true}
+   
+  - slash{fromorigin=true;origin=@origin;mpd=false;dtt=true;fo=0;yo=0;
+    angle=360;points=<skill.var.points>;w=<skill.var.radius>;h=<skill.var.radius>;duration=0;pitch=90;roll=0;
+    oP=[
+    - projectile{fo=true;origin=@variablelocation{var=origin_loc;yo=0};syo=0;sfo=0;ham=true;drawhitbox=false;
+      v=1;mr=1;md=1;g=0;hnp=true;sb=false;se=false;
+      ot=[ - e:p{p=reddust;a=1} ?varequals{var=debug;val=true} ];
+      os=vfx-particle_shockwave-point} @targetedlocation
+    - e:p{p=end_rod;a=1} ?varequals{var=debug;val=true}
+    ]} 
+    
+vfx-particle_shockwave-point:
+  Skills:
+  - vskill{origin=@projectileforward{f=<skill.var.length>};s=<skill.vfx|vfx-particle_shockwave-default>} @projectileforward{f="<skill.var.length>+1"}
+    
+vfx-particle_shockwave-default:
+  Skills:
+  - vskill{s=[ - e:p{fo=true;p=<skill.var.particle>;a=1;directional=true;directionreversed=<skill.var.reverse>;speed=<skill.var.speed>} ]}

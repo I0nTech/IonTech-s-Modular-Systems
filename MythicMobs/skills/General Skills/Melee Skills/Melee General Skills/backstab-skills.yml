@@ -1,0 +1,30 @@
+backstab-exec:
+  Skills:
+  - sudoskill{s=backstab-sudocast;target=@self;cat=true} @trigger
+  
+backstab-sudocast:
+  TriggerConditions:
+  - fieldofview{angle=180} false
+  Skills:
+  - sudoskill{s=backstab-cast;target=@origin} @trigger 
+  
+backstab-cast:
+  Skills:
+  - skill{s=spell-cast;branch=true;
+    name="Backstab";
+    id=backstab-hit-entity;
+    spellcooldown=4} @self
+
+backstab-hit-entity:
+  Skills:
+  - sound{s=entity.player.attack.sweep;p=1.62;v=1} 
+  - sound{s=entity.player.attack.crit;p=0.65;v=1} 
+  - sound{s=particle.soul_escape;p=1.49;v=4} 
+  - modifyDamage{a=3;action=MULTIPLY;sync=true} 
+  - e:p{p=reddust;a=12;hs=0.3;vs=0.6;y=1} @origin
+  - e:p{p=item_crack;material=redstone;a="20";speed=0.4;hs=0.15;vs=0.3;y=1} @origin
+
+
+
+
+

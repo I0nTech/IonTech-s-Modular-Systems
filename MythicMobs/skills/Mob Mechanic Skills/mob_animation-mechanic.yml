@@ -1,0 +1,165 @@
+mob_model-anim:
+#  Conditions:
+#  - stance{s=transition} false
+  Skills:
+  - vskill{s=mob_model-anim-exec;branch=true}
+
+mob_model-anim-exec:
+  Skills:
+# Animation Parameters
+  - setvar{var=priority;val=<skill.priority|<skill.p|1>>;type=INTEGER}
+  - message{m="<red>anim-<skill.var.priority> attempt"} @server ?varequals{var=caster.debug;value="true"}
+  - return ?hasaura{aura=anim-<skill.var.priority>} ?varequals{var=skill.state;val=none}
+
+  - setvar{var=overwrite;val=<skill.overwrite|<skill.ow|false>>;type=STRING}
+  - setvar{var=model_id;val=<skill.mid|<skill.model_id|none>>;type=STRING}
+  - setvar{var=part_id;val=<skill.pid|<skill.part_id|none>>;type=STRING} #origin
+ # - setvar{var=part_id2;val=<skill.pid2|<skill.part_id2|<skill.var.pid>>>;type=STRING} #target, if not set = pid (?) Maybe use varlocs?
+  - setvar{var=state;val=<skill.state|<skill.anim|<skill.attack_anim|none>>>;type=STRING}
+  - setvar{var=loop;val=<skill.l|<skill.loop|once>>;type=STRING}
+  - setvar{var=lerpin;val="<skill.lerpin|<skill.li|0>>";type=FLOAT}
+  - setvar{var=lerpout;val="<skill.lerpout|<skill.lo|0>>";type=FLOAT}
+
+  - setvar{var=speed;val="<skill.speed|1>";type=FLOAT}
+  - setvar{var=duration;val="<skill.duration|<skill.d|1>>/<skill.var.speed>*20+<skill.var.lerpin>+<skill.var.lerpout>";type=FLOAT}
+  - setvar{var=anim_start;val="<skill.anim_start|<skill.attack_start|<skill.start|0>>>/<skill.var.speed>*20+<skill.var.lerpin>";type=FLOAT}
+  - setvar{var=anim_end;val="<skill.anim_end|<skill.attack_end|<skill.end|<skill.var.duration>/20>>>/<skill.var.speed>*20+<skill.var.lerpin>";type=FLOAT}
+
+# Actions
+  - setvar{var=onStart;val=<skill.os|<skill.onStart|none>>;type=STRING}
+  - setvar{var=onAnimStart;val=<skill.oas|<skill.onAnimStart|none>>;type=STRING}
+  - setvar{var=onAnimTick;val=<skill.oat|<skill.onAnimTick|none>>;type=STRING}
+  - setvar{var=onAnimEnd;val=<skill.oae|<skill.onAnimEnd|none>>;type=STRING}
+  - setvar{var=onEnd;val=<skill.oe|<skill.onEnd|none>>;type=STRING}
+  
+  - removeaura{aura="anim-<skill.var.priority>"} ?varequals{var=skill.overwrite;val=true}
+  - aura{name="anim-<skill.var.priority>";type=animation;d=<skill.var.duration>;i=1;ma=true;rd=false;
+    desot=true;cot=false;cod=true;
+    os=[ 
+    - skill{s=mob_model-anim_debug}
+    - tracklocation @targetlocation
+    - state{mid=<skill.var.model_id>;s=<skill.var.state>;l=<skill.var.loop>;priority=<skill.var.priority>;speed=<skill.var.speed>;ow=true;li=<skill.var.lerpin>;lo=<skill.var.lerpout>}
+    - vskill{s=<skill.var.onStart>}
+    ];
+    ot=[
+    - setvar{var=progress;val="<skill.var.duration>-<skill.var.aura-duration>";type=FLOAT}      
+    - vskill{s=mob_model-anim_tick}
+    ];
+    oe=[ 
+    <#>- state{mid=<skill.var.model_id>;s=<skill.var.state>;remove=true;priority=<skill.var.priority>}
+    - message{m="anim done"} @PIR{r=100} ?varequals{var=caster.debug;value="true"}
+    - vskill{s=<skill.var.onEnd>;delay=0}
+    ]} @self
+    
+mob_model-anim_debug:
+  Conditions:
+  - varequals{var=caster.debug;value="true"}
+  Skills:
+  - message{m=<skill.var.model_id> <skill.var.part_id> <skill.var.state> <skill.var.loop> Priority <skill.var.priority> Overwrite <skill.var.overwrite><newline> 
+    Speed <skill.var.speed> Duration <skill.var.duration> Anim Start <skill.var.anim_start> Anim End <skill.var.anim_end> <newline>
+    onStart <skill.var.onStart> onAnimStart <skill.var.onAnimStart> onAnimTick <skill.var.onAnimTick> onAnimEnd <skill.var.onAnimEnd> onEnd <skill.var.onEnd><newline>  
+    } @server
+
+mob_model-anim_begin:
+  Skills:
+  - message{m="anim start"} @PIR{r=100} ?varequals{var=caster.debug;value="true"}
+  - vskill{s=<skill.var.onAnimStart>;origin=@ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}} @ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}
+ # - vskill{s=<skill.var.onAnimStart>;origin=@ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id2>;em=false}} @ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id2>;em=false}
+
+mob_model-anim_tick:
+  Conditions:
+  - varequals{var=progress;val=<skill.var.anim_start>} cast mob_model-anim_begin
+  - varequals{var=progress;val=<skill.var.anim_end>} cast mob_model-anim_end
+  - ( varinrange{var=progress;val=><skill.var.anim_start>} && varinrange{var=progress;val=<<skill.var.anim_end>} || 
+    varequals{var=progress;val=<skill.var.anim_start>} || varequals{var=progress;val=<skill.var.anim_end>})
+  Skills:  
+  - vskill{s=<skill.var.onAnimTick>;origin=@ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}} @ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}
+ # - vskill{s=<skill.var.onAnimTick>;origin=@ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id2>;em=false}} @ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id2>;em=false}
+
+mob_model-anim_end:
+  Skills:
+  - message{m="anim ended"} @PIR{r=100} ?varequals{var=caster.debug;value="true"}
+  - vskill{s=<skill.var.onAnimEnd>;origin=@ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}} @ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}
+#  - vskill{s=<skill.var.onAnimEnd>;origin=@ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id2>;em=false}} @ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id2>;em=false}
+
+# Modelled Mob Attack Logic
+
+mob_model-attack:
+  Skills:
+  - skill{s=mob_model-anim;
+    onStart=mob_model-attack-init;
+    onAnimStart=mob_model-attack_anim-start;
+    onAnimTick=mob_model-attack_anim-hitbox;
+    onAnimEnd=mob_model-attack_anim-end;
+    onEnd=mob_model-attack-end}
+
+mob_model-attack-init:
+  Skills:
+# Extra Attack Parameters
+  - setvar{var=hitboxsize;val=<skill.hitboxsize|2/5>;type=FLOAT}
+  - setvar{var=velocity;val=<skill.v|<skill.velocity|1>>;type=FLOAT}
+  - setvar{var=velocityY;val=<skill.vy|<skill.velocity|1/10>>;type=FLOAT}
+
+  - setvar{var=damage;val=<skill.damage|<caster.damage>>;type=FLOAT}
+  - setvar{var=immune;val=<skill.immune|10>;type=INTEGER}
+
+  - setvar{var=knockback;val=<skill.kb|<skill.knockback|5>>;type=FLOAT}
+  - setvar{var=knockbackY;val=<skill.kby|<skill.knockbackY|2>>;type=FLOAT}
+  - setvar{var=lockmodel;val=<skill.lockmodel|true>;type=STRING}
+
+#Actions
+  - setvar{var=onAttackStart;val=<skill.oas|<skill.onAttackStart|none>>;type=STRING}
+  - setvar{var=onAttackHitbox;val=<skill.oat|<skill.onAttackHitbox|none>>;type=STRING}
+  - setvar{var=onAttackHit;val=<skill.oah|<skill.onAttackHit|mob_model-attack-hit_entity>>;type=STRING}
+  - setvar{var=onAttackEnd;val=<skill.oae|<skill.onAttackEnd|none>>;type=STRING}
+  - setvar{var=onFinish;val=<skill.of|<skill.onFinish|none>>;type=STRING}
+
+  - message{m=Lunge <skill.var.velocity> y<skill.var.velocityY> Damage <skill.var.damage> Immune <skill.var.immune> Knockback <skill.var.knockback> y<skill.var.knockbackY> Lock Model <skill.var.lockmodel><newline>
+    onAttackStart <skill.var.onAttackStart> onAttackHitbox <skill.var.onAttackHitbox> onAttackHit <skill.var.onAttackHit> onAttackEnd <skill.var.onAttackEnd> onFinish <skill.var.onFinish>} @server ?varequals{var=caster.debug;value="true"}
+
+  - setspeed{s=0} @self
+
+mob_model-attack_anim-start:
+  Skills:
+  - lockmodel @self ?varequals{var=skill.lockmodel;val=true}
+  - lunge{v=<skill.var.velocity>;vy=<skill.var.velocityY>} @targetlocation ?onGround
+  - lunge{v="<skill.var.velocity>/2";vy=<skill.var.velocityY>} @targetlocation ?!onGround
+  - vskill{s=<skill.var.onAttackStart>}
+
+mob_model-attack_anim-hitbox:
+  Skills:
+  - vskill{s=<skill.var.onAttackHitbox>}
+ # - e:p{p=spark;a=1} @origin
+ # - e:p{p=reddust;a=1}
+  - totem{md=1;yo=0;hr=<skill.var.hitboxsize>;vr=<skill.var.hitboxsize>;drawhitbox=false;hnp=true;hp=true;
+    oh=mob_model-attack-hit_logic}
+   
+mob_model-attack-hit_logic:
+  Skills:
+  - setvar{var=damage;val=<skill.damage|<skill.var.damage|<caster.damage>>>;type=FLOAT} @self #?!varisset{var=damage}
+  - skill{s=setRandomID} ?!varisset{var=randomid}
+#  - message{m=<skill.var.damage>} @self
+  - aura{name=<skill.var.randomid>;type=iframe;d=<skill.immune|10>;ma=true;
+    os=[
+    - message{m="hit by <caster.name> <skill.var.damage>"} ?varequals{var=caster.debug;value="true"}
+    - vskill{s=<skill.var.onAttackHit>} 
+    ]}
+  
+mob_model-attack-hit_entity:
+  TargetConditions:
+  - isLiving
+  - SameFaction false
+  Skills:
+  - setvar{var=targety;val=<target.l.y>;type=FLOAT}
+  - damage{a=<skill.var.damage>;ii=true;pi=true;pkb=true;tags=ENTITY,MELEE;cause=CUSTOM}
+  - throw{fo=true;origin=@selflocation{cy=<skill.var.targety>};v=<skill.var.knockback>;vy=<skill.var.knockbackY>}
+
+mob_model-attack_anim-end:
+  Skills:
+  - vskill{s=<skill.var.onAttackEnd>} 
+
+mob_model-attack-end:
+  Skills:
+  - lockmodel{lock=false} @self
+  - setspeed{s=1} @self
+  - vskill{s=<skill.var.onFinish>} 

@@ -1,0 +1,39 @@
+test-shot-cast:
+  Skills:
+  - skill{s=test-shot-fire;damage=2.5;range=12;origin=@SelfEyeLocation{fo=-0.5;yo=-0.2}} @forward{f=12;uel=true}
+
+
+test-shot-fire:
+  Skills:
+  - sound{s=item.trident.return;pitch=2;volume=0.9} @self
+  - projectile{fo=true;tickInterpolation=5;syo=0;sfo=0;
+    onStart=test-shot-start;
+    onTick=test-shot-tick;
+    onHit=test-shot-hit-entity;
+    onEnd=test-shot-hit;
+    ham=true;v=50;MaxRange=64;i=1;g=0;hR=0.25;vR=0.25;hnp=true}
+
+test-shot-start:
+  Skills:
+  - e:p{fo=true;origin=@ProjectileForward{f=3};
+    p=dust_color_transition;color1=#FF0000;color2=#6C2DC7;amount=1;size=0.8;speed=0;hS=0;vS=0} @RingAroundOrigin{r=1;p=8;relative=true}
+    
+test-shot-tick:
+  Skills:
+  - e:p{p=dust_color_transition;color1=#FF0000;color2=#6C2DC7;amount=1;size=0.8;speed=0;hS=0;vS=0} @ProjectileForward{f=0}
+  
+test-shot-hit:
+  Skills:
+  - e:p{p=enchanted_hit;amount=4;speed=0.4;hS=0.25;vS=0.25} @origin
+  - e:p{p=soul_fire_flame;amount=3;speed=0.1;hS=0;vS=0}
+
+test-shot-hit-entity:
+  Skills:
+  - damage{a=<skill.damage|6>;ia=true;pi=true;element=ARCANE} 
+  - skill{s=test-shot-hit-sfx} @self
+  - skill{s=test-shot-hit-sfx} @origin
+
+test-shot-hit-sfx:
+  Skills:
+  - sound{s=entity.player.attack.knockback;pitch=2}
+  - sound{s=entity.player.attack.crit;pitch=4} 

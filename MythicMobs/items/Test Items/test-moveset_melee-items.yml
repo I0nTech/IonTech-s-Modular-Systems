@@ -1,0 +1,71 @@
+test-moveset-sword:
+  Id: IRON_SWORD
+  Display: 'Sword Moveset'
+  Skills:
+  - skill{s=moveset-sword-exec;damage="100+20";cd=0.5} @self ~onSwing ?equipslot{slot=HAND}
+  - skill{s=moveset-sword-exec;damage="100+20";cd=0.5} @self ~onAttack ?equipslot{slot=HAND} 
+
+test-moveset-greatsword:
+  Id: IRON_SWORD
+  Display: 'Greatsword Moveset'
+  Skills:
+  - skill{s=moveset-greatsword-exec;damage=<caster.damage>;cd=0.9;sync=true} @self ~onSwing ?equipslot{slot=HAND} 
+  - skill{s=moveset-greatsword-exec;damage=<caster.damage>;cd=0.9;sync=true} @self ~onAttack ?equipslot{slot=HAND} 
+
+test-moveset-dagger:
+  Id: IRON_SWORD
+  Display: 'Dagger Moveset'
+  Attributes:
+    MainHand:
+      Damage: 5
+      AttackSpeed: -1.8 ADD
+  Skills:
+  - skill{s=moveset-dagger-exec;damage=<caster.damage>;cd=0.2;sync=true} @self ~onSwing ?equipslot{slot=HAND} 
+  - skill{s=moveset-dagger-exec;damage=<caster.damage>;cd=0.2;sync=true} @self ~onAttack ?equipslot{slot=HAND} 
+
+test-moveset-spear:
+  Id: STICK
+  Display: 'Spear Moveset'
+  Attributes:
+    MainHand:
+      Damage: 8
+      AttackSpeed: -2 ADD
+  Skills:
+  - skill{sync=true;s=[
+    - message{m=hit charged}
+    - cancelevent
+    - playanimation{a=0}
+    ]} @self ?!hasaura{auraname="moveset-spear-exec-cd"} ?!itemrecharging ~onAttack 
+
+  - skill{s=spell-cast;branch=true;name="Spear Moveset";sync=true;
+    id=moveset-spear-exec;spellcooldown="1/%attribute_player_value_GENERIC_ATTACK_SPEED%";displaycd=false;
+    damage=<caster.damage>} @self ~onSwing ?equipslot{slot=HAND} ?!itemrecharging
+
+#  - skill{s=spear_stab-exec;damage=<caster.damage>;cd=0.5;sync=true} @self ~onSwing ?equipslot{slot=HAND} ?!itemrecharging
+#  - skill{s=moveset-spear-exec;damage=<caster.damage>;cd=0.7;sync=true} @self ~onAttack ?equipslot{slot=HAND} 
+ 
+
+test-moveset-scythe:
+  Id: STICK
+  Display: 'Scythe Moveset'
+  Attributes:
+    MainHand:
+      Damage: 8
+      AttackSpeed: -2.6 ADD
+  Skills:
+  - skill{s=moveset-scythe-exec;damage=<caster.damage>;cd=0.7;sync=true} @self ~onSwing ?equipslot{slot=HAND} 
+  - skill{s=moveset-scythe-exec;damage=<caster.damage>;cd=0.7;sync=true} @self ~onAttack ?equipslot{slot=HAND} 
+
+test-moveset-axe:
+  Id: IRON_AXE
+  Display: 'Axe Moveset'
+  Skills:
+  - skill{s=moveset-axe-exec;damage=<caster.damage>;cd=0.6;sync=true} @self ~onSwing ?equipslot{slot=HAND} 
+  - skill{s=moveset-axe-exec;damage=<caster.damage>;cd=0.6;sync=true} @self ~onAttack ?equipslot{slot=HAND} 
+
+test-moveset-greataxe:
+  Id: IRON_AXE
+  Display: 'Greataxe Moveset'
+  Skills:
+  - skill{s=moveset-greataxe-exec;damage=<caster.damage>;cd=0.9;sync=true} @self ~onSwing ?equipslot{slot=HAND} 
+  - skill{s=moveset-greataxe-exec;damage=<caster.damage>;cd=0.9;sync=true} @self ~onAttack ?equipslot{slot=HAND} 

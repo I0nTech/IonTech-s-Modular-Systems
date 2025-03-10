@@ -1,0 +1,33 @@
+detection_ai:
+  Type: SKELETON
+  Display: 'Detection AI Base'
+ # Template: hostile_mob
+  Modules:
+    ThreatTable: true
+  AITargetSelectors:
+    - clear
+    - nearestconditionaltarget{ms=true;conditions=[ 
+      - haspotioneffect{t=INVISIBILITY} false
+      - ( fieldofview{angle=200} || ( distance{d=<2} || ((distance{d=<6} && targetinlineofsight && crouching false)))) true 
+      ]}
+  Variables:
+    debug: false
+    alert_state: 0
+    alert_duration: 10
+    search_duration: 10
+  Skills:
+  - skill{s=detection-init} @self ~onSpawn
+  - skill{s=detection-tick} @self ~onTimer:10 #(? Apply aura for checks.)
+
+  - skill{s=detection-enter_combat} @self ~onEnterCombat
+  - skill{s=detection-drop_combat} @self ~onDropCombat
+  - skill{s=detection-change_target} @self ~onChangeTarget
+
+  - skill{s=detection-reset} @self ~onSignal:test_1
+  - skill{s=detection-debug} @self ~onSignal:test_2
+
+  # - message{m="Test Idle"} @server ~onSignal:detection_idle
+  # - message{m="Test Alert"} @server ~onSignal:detection_alert
+  # - message{m="Test Search"} @server ~onSignal:detection_search
+  # - message{m="Test End Search"} @server ~onSignal:detection_search_end
+  # - message{m="Test Combat"} @server ~onSignal:detection_combat

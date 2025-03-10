@@ -1,0 +1,106 @@
+weapon:
+  Options:
+    PreventDropping: false
+    KeepOnDeath: false
+    Unbreakable: true
+    Placeable: false
+  Hide:
+  - UNBREAKABLE
+  - DYE
+
+melee:
+  Template: weapon
+  Id: GOLDEN_SWORD
+
+bow:
+  Template: weapon
+  Id: BOW
+
+wand:
+  Template: weapon
+  Id: STICK
+
+cyclewand:
+  Template: weapon
+  Id: STICK
+  Display: "Base Cycle Wand"
+  NBT:
+    activespell: int/1
+    maxspells: int/3
+  Skills:
+  - skill{s=spell-cycle-cast;branch=true} @self ~onSwing
+  - skill{s=spell-cycle-right;branch=true} @self ~onUse ?!isCrouching
+  - skill{s=spell-cycle-left;branch=true} @self ~onUse ?isCrouching 
+
+click_combo-normal:
+  Template: weapon
+  Id: STICK
+  Display: "Normal Click Combo"
+  Lore: "RIGHT-CLICK to Cast spells."
+  Slot: HAND
+  Options:
+    PreventDropping: true
+  Skills:
+  - skill{s=[
+    - skill{s=click_combo-sendinput;key=LEFT;delay=1}
+    ]} @self ~onSwing ?!hasaura{aura=clickcombo-left_cd}
+    
+  - skill{s=[
+    - skill{s=click_combo-sendinput;key=RIGHT} 
+    ]} @self ~onUse
+    
+  - skill{s=[
+    - aura{name=clickcombo-left_cd;d=1;ow=true;bartimer=false}
+    - skill{s=click_combo-sendinput;key=DROP}
+    ]} @self ~onPressQ
+    
+  - CancelEvent{sync=true} @self ~onPressF
+  - skill{s=click_combo-sendinput;key=SWAP} @self ~onPressF
+  - skill{s=click_combo-force_end} @self ~onUnHeld
+
+click_combo-quick:
+  Template: weapon
+  Id: STICK
+  Display: "Quick Click Combo"
+  Lore: "SWAP to Quick-cast spells."
+  Slot: HAND
+  Options:
+    PreventDropping: true
+  Hide:
+  - UNBREAKABLE
+  - DYE
+  Skills:
+  - skill{s=click_combo-sendinput;key=LEFT;delay=1} @self ~onSwing ?!hasaura{aura=clickcombo-left_cd}
+  - skill{s=click_combo-sendinput;key=RIGHT} @self ~onUse
+ 
+  - skill{s=[
+    - aura{name=clickcombo-left_cd;d=1;ma=true;bartimer=false}
+    - skill{s=click_combo-sendinput;key=DROP}
+    ]} @self ~onPressQ
+    
+ # - CancelEvent{sync=true} @self ~onPressQ
+  - CancelEvent{sync=true} @self ~onPressF
+  - skill{s=click_combo-sendinput;key=SWAP} @self ~onPressF
+  - skill{s=click_combo-force_end} @self ~onUnHeld
+
+click_combo-wynn:
+  Template: weapon
+  Id: STICK
+  Display: "Wynn Wand Click Combo"
+  Lore: "RIGHT-CLICK to Cast spells."
+  Slot: HAND
+  Options:
+    PreventDropping: true
+  Hide:
+  - UNBREAKABLE
+  - DYE
+  Skills:
+  - skill{s=[
+    - skill{s=click_combo-sendinput;key=LEFT;delay=0}
+    ]} @self ~onSwing
+    
+  - skill{s=[
+    - skill{s=click_combo-sendinput;key=RIGHT;delay=0} 
+    ]} @self ~onUse
+  
+  - skill{s=click_combo-force_end} @self ~onUnHeld

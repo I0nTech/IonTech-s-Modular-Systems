@@ -1,0 +1,14 @@
+base_icon:
+  Display: "Unset Icon"
+  Id: creeper_banner_pattern
+  Model: 1
+  Options:
+   PreventAnvil: true
+   PreventEnchanting: true
+   Unbreakable: true
+#   HideFlags: true
+  Hide:
+  - UNBREAKABLE
+  - DYE
+
+

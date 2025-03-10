@@ -1,0 +1,198 @@
+#Mob Random dodge skill
+
+mob-dodge-cast:
+  Skills:
+  - skill{s=mob-dodge-exec;velocity=3} @self
+
+#  - skill{s=mob-dodge-exec;velocity=3} ?( - onGround{} && - inCombat{})
+  
+mob-dodge-exec:
+  Conditions:
+  - onGround{}
+  Skills:
+  - randomskill{
+      skills=
+      [ - setvar{var=skill.x;type=INTEGER;val="-1"} ],
+      [ - setvar{var=skill.x;type=INTEGER;val="1"} ] 
+    }
+  - randomskill{
+      skills=
+      [ - setvar{var=skill.z;type=INTEGER;val="-1"} ],
+      [ - setvar{var=skill.z;type=INTEGER;val="1"} ] 
+    }
+#  - message{m="<skill.velocity> <skill.var.x> <skill.var.z>"}
+ # - skill{s=mob-dodge-fx}
+  - jump{velocity="0.1"}
+  - velocity{m=add;relative=true;
+    x="(<skill.velocity|1>*<random.float.0.05to0.10>)*<skill.var.x>";
+    y=0.0;
+    z="(<skill.velocity|1>*<random.float.0.05to0.10>)*<skill.var.z>"}
+
+mob-shadowdodge-fx:
+  Skills:
+  - sound{s=item.armor.equip_chain;p=1.62;sc=master;v=0.5}
+  - sound{s=item.armor.equip_leather;p=0.62;sc=master;v=0.5}
+  - sound{s=item.bundle.insert;p=1.72;sc=master;v=0.5}
+  - sound{s=entity.skeleton_horse.step_water;p=0.58;sc=master;v=0.7}
+  - sound{s=entity.iron_golem.attack;p=0.55;sc=master;v=0.44}
+  - sound{s=entity.phantom.flap;p=0.78;sc=master;v=0.22}
+  - sound{s=entity.horse.breathe;p=1.5;sc=master;v=0.8}
+
+  - effect:particles{particle=ash;a=<random.4to8>;hs=0.25;vs=0.60;s=0.0;y=1.0;repeat=3;repeatInterval=1}
+  - effect:particles{particle=smoke_large;a=5;hs=0.3;vs=0.01;s=0.05}
+
+#Mob Sprint Skill
+
+mob-sprint-cast:
+  Skills:
+  - skill{s=mob-sprint-exec;duration=1;intensity=5} @self
+
+mob-sprint-exec: ## What this does is make the mob slightly faster for a very brief moment, catching players off guard ##
+  Conditions:
+  - onGround{}
+  Skills:
+  - sound{s=entity.armor.equip_leather;p=0.82;sc=master;v=2} @origin
+  - removeaura{auraname=retreat}
+  - removeaura{auraname=shieldblock} 
+  - aura{auraname=sprint;d="20*<skill.duration|1>*<random.float.1to1.25>";i=1;ma=true;
+    ot=[ - potion{t=speed;d=5;l=<skill.intensity|2>;p=false} ];
+    oe=[ - potion{t=slow;d="<random.float.0.25to0.5>*<skill.duration>";l=2;p=false} ]} 
+
+#Mob retreat skill
+
+mob-retreat-cast:
+  Skills:
+  - skill{s=mob-retreat-exec;duration=0.1;velocity=1} @self 
+
+mob-retreat-exec:
+  Conditions:
+  - onGround{}
+  Skills:
+  - removeaura{auraname=sprint}
+  - aura{auraname=retreat;d="<skill.duration|1>*20";i=1;ma=true;
+    ot=[ - velocity{m=add;relative=true;x=0;y=0;z="(-<skill.velocity|0.2>*<random.float.1to1.2>)"} ?onGround{} ]} 
+
+#Mob Backstep skill
+
+mob-backstep-cast:
+  Skills:
+  - skill{s=mob-backstep-exec;velocity=2} @self 
+
+mob-backstep-exec:
+  Conditions:
+  - onGround{} 
+  Skills:
+  - removeaura{auraname=sprint}
+  - removeaura{auraname=retreat}
+  - removeaura{auraname=shieldblock}
+  - jump{velocity="<skill.velocity|2>*0.3"}
+  - velocity{m=add;relative=true;x=0;y=0;z="(-<skill.velocity|2>*<random.float.1to1.2>)"} 
+  - delay 2
+  - skill{s=mob-nofall-aura-apply;duration=12}
+  
+#Mob Lunge Skill
+
+mob-lunge-cast:
+  Skills:
+  - skill{s=mob-lunge-exec;velocity=2} @self 
+
+mob-lunge-exec:
+  Conditions:
+  - onGround{} 
+  Skills:
+  - removeaura{auraname=sprint}
+  - removeaura{auraname=retreat}
+  - removeaura{auraname=shieldblock}
+  - jump{velocity="<skill.velocity|2>*0.2"}
+  - velocity{m=add;relative=true;x=0;y=0;z="(<skill.velocity|2>*<random.float.1to1.2>)"} 
+  - delay 2
+  - skill{s=mob-nofall-aura-apply;duration=12}
+
+#Mob Leap Skill, to reach tall areas.
+
+mob-leap-exec:
+  Conditions:
+  - onGround{}
+  TargetConditions:
+  - yDiff{diff=>2} 
+  Skills:
+  - effect:particlering{fo=true;particle=smoke;a=1;r=0.2;p=8;hs=0.3;vs=0.01;s=0.1;directional=true} @self
+  - leap{velocity=200;cd=1}
+  - delay 2
+  - skill{s=mob-nofall-aura-apply;duration=12} @self
+  
+#Shield Block Behaviour
+mob-shieldblock-apply:
+  Skills:
+  - aura{
+      auraName=shieldblock;d="<skill.duration|4>*20";i=1;ma=true;
+      onStart=[
+       - removeaura{auraname=sprint}
+       - disguisemodify{d="setOffhandRaised true"} @self 
+      ];
+      onTick=[
+       - potion{t=SLOW;d=5;l=<skill.intensity|1>;p=false}
+      ];
+      onEnd=[
+       - disguisemodify{d="setOffhandRaised false"} @self 
+      ]}
+
+mob-shieldblock-exec:
+  TriggerConditions:
+  - fieldofview{angle=90} true
+#  - holding{m=*AXE} castinstead mob-shieldblock-break
+  Conditions:
+  - (wearing{slot=HAND;m=SHIELD} || wearing{slot=OFFHAND;m=SHIELD}) true
+  - hasaura{name=shieldblock}
+  Skills:
+  - CancelEvent
+  - sound{s=item.shield.block} 
+  - e:p{p=SPARK;a=4;hs=0.3;vs=0;y=1;speed=2;fo=0.4}
+
+mob-shieldblock-break:
+  Conditions:
+  - hasaura{name=shieldblock}
+  Skills:
+  - CancelEvent 
+  - sound{s=item.shield.break}
+  - playanimation{a=3;audience=World} 
+ # - message{m="<mob.name>&f<&co> Shield Broken"} @PlayersInRadius{r=30}
+  - removeaura{aura=shieldblock}
+  - disguisemodify{d="setOffhandRaised false"} @self 
+  - setSkillCooldown{skill=mob-shieldblock-exec;seconds=6}
+
+# Nofall Aura For Mobs
+
+mob-nofall-aura-apply:
+  Skills:
+  - onDamaged{
+      auraName=mob-nofall-aura;d="<skill.duration|4>*20";ma=true;
+      onTick=[
+        - skill{s=mob-nofall-aura-tick}
+      ];
+      onHit=[
+       - skill{s=mob-nofall-aura-land}
+      ];
+      damageMods="FALL 0"}
+
+mob-nofall-aura-tick:
+  Skills:
+#  - particles{particle=ash;a=<random.4to8>;hs=0.3;vs=0.6;s=0.0;y=1.0}
+#  - particles{particle=SMOKE_LARGE;a=1;s=0.0}
+  - skill{s=mob-nofall-aura-remove}
+
+mob-nofall-aura-land:
+  Conditions:
+  - damagecause{c=FALL} true 
+  Skills:
+#  - particles{fo=true;p=SMOKE_LARGE;amount=16;hS=1;y=-0.5;vs=0;speed=0.4;directional=true}
+  - skill{s=mob-nofall-aura-remove}
+
+mob-nofall-aura-remove:
+  Conditions:
+  - (onground{} || blocktype{type=water,lava,cobweb,scaffolding}) true 
+  Skills:
+#  - effect:particlering{fo=true;particle=smoke;a=1;r=0.2;p=4;hs=0.3;vs=0.01;s=0.05;directional=true}
+  - auraremove{aura=mob-nofall-aura} 
+
+

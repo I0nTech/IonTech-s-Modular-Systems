@@ -1,0 +1,13 @@
+material:
+  Display: "Unset"
+  Id: PAPER
+  Options:
+   PreventAnvil: true
+   PreventEnchanting: true
+   Unbreakable: true
+#  Firework:
+#    Colors:
+#    - 0,0,0
+  Hide:
+  - UNBREAKABLE
+  - DYE

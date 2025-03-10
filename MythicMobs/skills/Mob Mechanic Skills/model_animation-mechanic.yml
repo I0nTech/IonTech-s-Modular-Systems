@@ -1,0 +1,194 @@
+model_animation:
+#  Conditions:
+#  - stance{s=transition} false
+  Skills:
+  - skill{s=model_animation-exec;branch=true}
+
+model_animation-init:
+  Skills:
+# animation Parameters
+  - setvar{var=priority;val=<skill.priority|<skill.p|1>>;type=INTEGER}
+  - setvar{var=state;val=<skill.state|<skill.animation|<skill.attack|none>>>;type=STRING}
+  - setvar{var=overwrite;val=<skill.overwrite|<skill.ow|false>>;type=STRING}
+
+  - return ?hasaura{aura=anim-<skill.var.priority>} ?varequals{var=state;val=none}
+  - return ?hasaura{aura=anim-<skill.var.priority>} ?varequals{var=overwrite;val=false}
+  - message{m="<red>animation-<skill.var.priority> <skill.var.state> attempt"} @server ?varequals{var=caster.debug;value="true"}
+
+  - setvar{var=model_id;val=<skill.mid|<skill.model_id|none>>;type=STRING}
+  - setvar{var=part_id;val=<skill.pid|<skill.part_id|none>>;type=STRING}
+  - setvar{var=loop;val=<skill.l|<skill.loop|once>>;type=STRING}
+  - setvar{var=lerpin;val="<skill.lerpin|<skill.li|0>>";type=FLOAT}
+  - setvar{var=lerpout;val="<skill.lerpout|<skill.lo|0>>";type=FLOAT}
+
+  - setvar{var=speed;val="<skill.speed|1>";type=FLOAT}
+  - setvar{var=duration;val="(<skill.duration|<skill.d|1>>)/<skill.var.speed>*20+<skill.var.lerpin>+<skill.var.lerpout>";type=FLOAT}
+  - setvar{var=animation_start;val="(<skill.animation_start|<skill.attack_start|<skill.start|0>>>)/<skill.var.speed>*20+<skill.var.lerpin>";type=FLOAT}
+  - setvar{var=animation_end;val="(<skill.animation_end|<skill.attack_end|<skill.end|<skill.var.duration>/20>>>)/<skill.var.speed>*20+<skill.var.lerpin>";type=FLOAT}
+  
+  - setvar{var=onStart;val=<skill.os|<skill.onStart|none>>;type=STRING}
+  - setvar{var=onAnimationStart;val=<skill.oas|<skill.onAnimationStart|none>>;type=STRING}
+  - setvar{var=onAnimationTick;val=<skill.oat|<skill.onAnimationTick|none>>;type=STRING}
+  - setvar{var=onAnimationEnd;val=<skill.oae|<skill.onAnimationEnd|none>>;type=STRING}
+  - setvar{var=onEnd;val=<skill.oe|<skill.onEnd|none>>;type=STRING}
+  - skill{s=setRandomID}
+ # - removeaura{aura="anim-<skill.var.priority>";delay=0} ?varequals{var=overwrite;val=true}
+
+model_animation-exec:
+  Skills:  
+  - skill{s=model_animation-init} @self
+  - aura{name="anim-<skill.var.priority>";type=animation;d=<skill.var.duration>;i=1;ow=true;
+    desot=true;cot=false;cod=true;
+    os=[ 
+    - skill{s=model_animation-debug}
+    - state{mid=<skill.var.model_id>;s=<skill.var.state>;l=<skill.var.loop>;priority=<skill.var.priority>;speed=<skill.var.speed>;ow=true;li=<skill.var.lerpin>;lo=<skill.var.lerpout>}
+    - vskill{s=<skill.var.onStart>}
+    ];
+    ot=[
+    - setvar{var=progress;val="<skill.var.duration>-<skill.var.aura-duration>";type=FLOAT}      
+    - skill{s=model_animation-tick}
+    ];
+    oe=[ 
+    <#>- state{mid=<skill.var.model_id>;remove=true;s=<skill.var.state>;priority=<skill.var.priority>;li=<skill.var.lerpin>;lo=<skill.var.lerpout>}
+    - message{m="animation finished"} @PIR{r=100} ?varequals{var=caster.debug;value="true"}
+    - vskill{s=<skill.var.onEnd>;delay=1}
+    ]} @self
+    
+model_animation-debug:
+  Conditions:
+  - varequals{var=caster.debug;value="true"}
+  Skills:
+  - message{m=
+    <bold><aqua>Animation DEBUG <reset> <newline>
+    <bold><aqua>Model ID<reset> <skill.var.model_id> <bold><aqua>Part ID<reset> <skill.var.part_id> <bold><aqua>State<reset> <skill.var.state> <bold><aqua>Loop<reset> <skill.var.loop> <bold><aqua>Priority<reset> <skill.var.priority> <newline> 
+    <bold><aqua>Overwrite<reset> <skill.var.overwrite> <bold><aqua>Speed<reset> <skill.var.speed> <bold><aqua>Duration<reset> <skill.var.duration> <bold><aqua>Start<reset> <skill.var.animation_start> <bold><aqua>End<reset> <skill.var.animation_end> <newline>
+    <bold><aqua>onStart<reset> <skill.var.onStart> <newline>
+    <bold><aqua>onAnimationStart<reset> <skill.var.onAnimationStart> <newline>
+    <bold><aqua>onAnimationTick<reset> <skill.var.onAnimationTick> <newline>
+    <bold><aqua>onAnimationEnd<reset> <skill.var.onAnimationEnd> <newline>
+    <bold><aqua>onEnd<reset> <skill.var.onEnd> <newline>
+    } @server
+
+model_animation-begin:
+  Skills:
+  - message{m="animation start"} @PIR{r=100} ?varequals{var=caster.debug;value="true"}
+  - vskill{s=<skill.var.onAnimationStart>;origin=@ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}} @ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}
+
+model_animation-tick:
+  Conditions:
+  - varequals{var=progress;val=<skill.var.animation_start>} cast model_animation-begin
+  - varequals{var=progress;val=<skill.var.animation_end>} cast model_animation-end
+  Skills:  
+  - vskill{s=<skill.var.onAnimationTick>;origin=@ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}} @ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}
+
+model_animation-end:
+  Skills:
+  - message{m="animation ended"} @PIR{r=100} ?varequals{var=caster.debug;value="true"}
+  - vskill{s=<skill.var.onAnimationEnd>;origin=@ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}} @ModelPart{mid=<skill.var.model_id>;p=<skill.var.part_id>;em=false}
+
+# Modelled Mob Attack Logic
+model_attack-init:
+  Skills:
+# Extra Attack Parameters
+  - setvar{var=lockrotation;val=<skill.lockrotation|true>;type=STRING}
+  - setvar{var=rotspeed;val=<skill.rotspeed|1>;type=INTEGER}
+  - setvar{var=hitboxsize;val=<skill.hitboxsize|2/5>;type=FLOAT}
+
+# Actions
+  - setvar{var=onAttackBegin;val=<skill.ob|<skill.onAttackBegin|none>>;type=STRING}
+  - setvar{var=onAttackStart;val=<skill.oas|<skill.onAttackStart|none>>;type=STRING}
+#
+  - setvar{var=onAttackTick;val=<skill.oat|<skill.onAttackTick|none>>;type=STRING}
+  - setvar{var=onAttackActive;val=<skill.oaa|<skill.onAttackActive|none>>;type=STRING}
+  - setvar{var=onAttackHitbox;val=<skill.oahb|<skill.onAttackHitbox|model_attack-hitbox-default>>;type=STRING}
+  - setvar{var=onAttackHit;val=<skill.oah|<skill.onAttackHit|model_attack-hit_entity>>;type=STRING}
+#  
+  - setvar{var=onAttackEnd;val=<skill.oae|<skill.onAttackEnd|none>>;type=STRING}
+  - setvar{var=onAttackFinish;val=<skill.of|<skill.onAttackFinish|none>>;type=STRING}
+
+# Debug
+  - skill{s=model_attack-debug} ?varequals{var=caster.debug;value="true"}
+ 
+model_attack-debug:
+  Skills:
+  - message{m=<bold><red>ATTACK DEBUG <reset><newline>
+    <bold><aqua>Lock Rotation<reset> <skill.var.lockrotation> <bold><aqua>Rotation Speed<reset> <skill.var.rotspeed> <bold><aqua>Hitbox Size<reset> <skill.var.hitboxsize> <newline>
+    <bold><aqua>onAttackBegin<reset> <skill.var.onAttackBegin> <newline> 
+    <bold><aqua>onAttackStart<reset> <skill.var.onAttackStart> <newline> 
+    <bold><aqua>onAttackTick<reset> <skill.var.onAttackTick> <newline>
+    <bold><aqua>onAttackActive<reset> <skill.var.onAttackActive> <newline>
+    <bold><aqua>onAttackHitbox<reset> <skill.var.onAttackHitbox> <newline>
+    <bold><aqua>onAttackHit<reset> <skill.var.onAttackHit> <newline>
+    <bold><aqua>onAttackEnd<reset> <skill.var.onAttackEnd> <newline>
+    <bold><aqua>onAttackFinish<reset> <skill.var.onAttackFinish>} @server
+
+model_attack:
+  Cooldown: 0.1
+  Skills:
+  - vskill{s=model_attack-init} @self
+  - skill{s=model_animation;
+    onStart=[
+      - setspeed{s=0} @self  
+      - vskill{s=<skill.var.onAttackBegin>}
+    ];
+    onAnimationStart=[
+      - lockmodel{delay=1} @self ?varequals{var=lockrotation;val=true}
+      - vskill{s=<skill.var.onAttackStart>}
+    ];
+    onAnimationTick=[
+      - vskill{s=<skill.var.onAttackTick>}
+      - vskill{s=model_attack-active}
+      - return ?!varinrange{var=progress;val=<<skill.var.animation_start>}
+      - tracklocation @targetlocation 
+      - rotatetowards{rotatepitch=true;my=<skill.var.rotspeed>;mp=<skill.var.rotspeed>;uel=true} @trackedlocation
+    ];
+    onAnimationEnd=[
+      - vskill{s=<skill.var.onAttackEnd>}
+    ];
+    onEnd=[
+      - lockmodel{lock=false;delay=1} @self
+      - setspeed{s=1} @self
+      - vskill{s=<skill.var.onAttackFinish>}
+    ]}
+
+model_attack-active:
+  Conditions:
+  - ( varinrange{var=progress;val=><skill.var.animation_start>} && varinrange{var=progress;val=<<skill.var.animation_end>} || 
+    varequals{var=progress;val=<skill.var.animation_start>} || varequals{var=progress;val=<skill.var.animation_end>})
+  Skills:
+  - vskill{s=<skill.var.onAttackActive>}
+  - vskill{s=<skill.var.onAttackHitbox>}
+
+model_attack-hitbox-default:
+  Skills:  
+  - e:p{p=spark;a=1}
+  - totem{md=1;yo=0;hr=<skill.var.hitboxsize>;vr=<skill.var.hitboxsize>;drawhitbox=false;hnp=true;hp=true;
+    oh=model_attack-hit_logic}
+   
+model_attack-hit_logic:
+  Skills:
+  - skill{s=setRandomID} ?!varisset{var=randomid}
+  - setvar{var=damage;val=<skill.damage|<caster.damage>>;type=FLOAT} @self #?!varisset{var=damage}
+
+  - aura{name=<skill.var.randomid>;type=iframe;d=<skill.immune|10>;ma=true;
+    os=[
+    - message{m="hit by <caster.name> <skill.var.damage>"} ?varequals{var=caster.debug;value="true"}
+    - vskill{s=<skill.var.onAttackHit>} 
+    ]}
+  
+model_attack-hit_entity:
+  TargetConditions:
+  - isLiving
+  - SameFaction false
+  Skills:
+  - setvar{var=targety;val=<target.l.y>;type=FLOAT}
+  - damage{a=<skill.var.damage>;ii=true;pi=true;pkb=false;tags=ENTITY,MELEE;cause=ENTITY_ATTACK}
+  - throw{fromorigin=true;origin=@selflocation{cy=<skill.var.targety>}} @targeted
+
+
+
+
+
+
+
+

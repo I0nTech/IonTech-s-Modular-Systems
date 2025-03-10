@@ -1,0 +1,25 @@
+sfx-slash_swing:
+  Skills:
+  - sound{s=entity.player.attack.sweep;v=0.4;p=0.6}
+  - sound{s=item.trident.hit;v=0.3;p=1}
+  - sound{s=entity.breeze.slide;v=0.8;p=1.1}
+  - sound{s=entity.breeze.wind_burst;v=0.4;p=0.7}
+  - sound{s=block.ancient_debris.hit;v=0.2;p=1.6}
+  - sound{s=entity.player.attack.weak;v=0.6;p=0.8}
+  - sound{s=entity.wither.shoot;v=0.3;p=1.8}
+
+sfx-slash-hit:
+  Cooldown: 0.05
+  Skills:
+  - sound{s=entity.player.attack.strong;audience=@self} @self
+  - sound{s=swords.sword_slash;audience=@self;v=0.5} @self
+  
+  - sound{s=entity.player.attack.strong}
+  - sound{s=swords.sword_slash;v=0.5}
+
+sfx-slash-hit_strong:
+  Cooldown: 0.05
+  Skills:
+  - skill{s=sfx-slash-hit}
+  - sound{s=entity.player.attack.knockback}
+  - sound{s=entity.player.attack.knockback;audience=@self} @self

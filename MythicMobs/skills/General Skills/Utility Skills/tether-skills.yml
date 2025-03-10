@@ -1,0 +1,62 @@
+tether-exec:
+  Skills:
+  - skill{s=tether-fire;origin=@SelfEyeLocation{fo=-0.5;yo=-0.2}} @forward{f=12;uel=true}
+#  - skill{s=distance-origin_to_target;origin=@forward{f=-3;uel=true}} @forward{f=3;uel=true}
+
+tether-fire:
+  Skills:
+  - sound{s=item.trident.return;pitch=2;volume=0.9} @self
+  - projectile{fo=true;tickInterpolation=2;syo=0;sfo=0;
+    ot=tether-tick;
+    oh=tether-pull_target_to;
+    ohb=tether-pull_toward_target;
+    hitconditions=[ - isliving true ];
+    ham=true;v=50;MaxRange=<skill.range|128>;i=1;g=0.05;hR=1;vR=1;hnp=true}
+#    bullet=MOB;mob=tether_marker;bmd=true;byo=0;
+  
+tether-tick:
+  Skills:
+  - e:p{p=SPARK;amount=1;size=0.8;speed=0;hS=0;vS=0;speed=0} @ProjectileForward{f=0}
+  
+tether-pull_target_to:
+  Cooldown: 0.05
+  TargetConditions:
+  - isLiving true
+  Skills:
+#  - message{m=test} @self
+  - am{m="Tethered by <caster.name>!"} @targeted
+  - aura{auraName=tether;d=40;i=1;
+     os=[
+     - skill{s=distance-origin_to_target;origin=@selfeyelocation}
+     ];
+     ot=[
+     - setvarloc{var=skill.targetloc;val=@selflocation}
+     - sudoskill{cat=true;s=[
+       - skill{s=distance-origin_to_target} @variablelocation{var=skill.targetloc}
+       - auraremove{aura=tether} @self ?varinrange{var=skill.distance;val=<6}
+       - propel{v=1.6} @variablelocation{var=skill.targetloc}
+       - effect:particleline{p=SPARK;amount=1;syo=1.5;tyo=1.5;speed=0;hS=0;vS=0;db=1} @variablelocation{var=skill.targetloc}
+       ]}
+     ]
+     oe=[
+      - velocity{m=multiply;x=0.4;y=0.5;z=0.4;relative=false}
+     ]} @targeted
+
+tether-pull_toward_target:
+  Skills:
+#  - message{m=test2} @self
+  - skill{s=distance-origin_to_target;origin=@selfeyelocation}
+  - setvarloc{var=skill.targetloc;val=@LOT{yo=-2}}
+  - aura{origin=@selfeyelocation;auraName=tether;d=40;i=1;
+     ot=[
+     - skill{s=distance-origin_to_target} @variablelocation{var=skill.targetloc}
+     - auraremove{aura=tether} @self ?varinrange{var=skill.distance;val=<6}
+     - propel{v=1.6} @variablelocation{var=skill.targetloc}
+     - effect:particleline{p=SPARK;amount=1;syo=1.4;speed=0;hS=0;vS=0;db=1} @variablelocation{var=skill.targetloc}
+    ];
+    oe=[
+      - delay 1
+      - velocity{m=multiply;x=0.4;y=0.5;z=0.4;relative=false} @self
+    ]} @self
+
+

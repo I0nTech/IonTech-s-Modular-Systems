@@ -1,0 +1,17 @@
+mob_spawner-spawn-default:
+  Skills:
+  - skill{s=mob_spawner-spawn;type="undyingSkeleton";weight=1}
+
+mob_spawner-spawn-test:
+  Skills:
+#   Replace type with your mobs and weight with desired weight.
+  - randomskill{
+    skills= 
+    [ - skill{s=mob_spawner-spawn;type="undyingSkeleton";weight=1} ] 6,
+    [ - skill{s=mob_spawner-spawn;type="archer";weight=6} ] 1,
+    [ - skill{s=mob_spawner-spawn;type="knight";weight=6} ] 1,
+    [ - skill{s=mob_spawner-spawn;type="rogue";weight=8} ] 1,
+    [ - skill{s=mob_spawner-spawn;type="mage";weight=8} ] 1,
+    [ - skill{s=mob_spawner-spawn;type="leader";weight=16} ] 0.5
+    }
+

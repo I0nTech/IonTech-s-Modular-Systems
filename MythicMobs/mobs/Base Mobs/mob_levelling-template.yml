@@ -1,0 +1,14 @@
+mob_levelling:
+  Type: SKELETON
+  Display: 'Level Scaling System Base'
+  Options:
+    PreventRandomEquipment: false
+  Variables:
+    debug: false
+    baselevel: 1
+    equipment_power: 0
+    equipment: none
+  Skills:
+  - skill{s=mob_levelling-init} @self ~onSpawn
+  - skill{s=mob_levelling-updatename;sync=true} @self ~onDamaged
+  - skill{s=mob_levelling-death} @self ~onDeath

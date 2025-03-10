@@ -1,0 +1,65 @@
+test-chainmissile-cast:
+  Skills:
+  - skill{s=test-chainmissile-exec} @forward{f=64;uel=true}
+
+test-chainmissile-exec:
+  Skills:
+  - skill{s=test-chainmissile-targettype}
+  - raytraceto{fo=true;origin=@selfeyelocation;md=<skill.range|64>;rw=0.25;
+    entityskill=[ 
+    - skill{s=test-chainmissile-fire;range=64;origin=@selfeyelocation} ?variableEquals{var=skill.isentity;value="TRUE"}
+    ]}
+
+  - skill{s=test-chainmissile-fire;range=64;origin=@selfeyelocation} @targetedlocation ?variableEquals{var=skill.isentity;value="FALSE"}
+
+
+  
+test-chainmissile-targettype:
+  Skills:
+  - raytraceto{fo=true;origin=@selfeyelocation;md=<skill.range|64>;rw=0.25;
+    locationskill=[ 
+    - setvariable{var=skill.isentity;value="FALSE";type=STRING}
+
+    - raytraceto{fo=true;md=<skill.range|64>;rw=0.25;
+      entityskill=[ 
+       - setvariable{var=skill.isentity;value="TRUE";type=STRING}
+       ]} 
+    ]}
+ # - message{m="isentity? <skill.var.isentity>"} @self 
+
+test-chainmissile-fire:
+  Skills:
+  - sound{s=item.trident.return;pitch=2;volume=0.9} @self
+  - chainmissile{fo=true;tickInterpolation=5;syo=0;sfo=0;
+    bounces=12;r=100;inertia=0;
+    onStart=test-chainmissile-start;
+    onTick=test-chainmissile-tick;
+    onHit=test-chainmissile-hit-entity;
+    onEnd=test-chainmissile-hit;
+    ham=true;v=50;MaxRange=<skill.range|32>;i=1;g=0;hR=0.25;vR=0.25;hnp=true}  
+
+test-chainmissile-start:
+  Skills:
+ # - e:p{fo=true;origin=@ProjectileForward{f=3};
+ #   p=dust_color_transition;color1=#FF0000;color2=#6C2DC7;amount=1;size=0.8;speed=0;hS=0;vS=0} @RingAroundOrigin{r=1;p=8;relative=true}
+    
+test-chainmissile-tick:
+  Skills:
+  - e:p{p=dust_color_transition;color1=#FF0000;color2=#6C2DC7;amount=1;size=0.8;speed=0;hS=0;vS=0} @ProjectileForward{f=0}
+#  - modifyProjectile{trait=inertia;action=MULTIPLY;value=0.99}
+ 
+test-chainmissile-hit:
+  Skills:
+  - e:p{p=enchanted_hit;amount=4;speed=0.4;hS=0.25;vS=0.25} @origin
+  - e:p{p=soul_fire_flame;amount=3;speed=0.1;hS=0;vS=0}
+
+test-chainmissile-hit-entity:
+  Skills:
+  - damage{a=<skill.damage|6>;ia=true;pi=true;element=ARCANE} 
+  - skill{s=test-chainmissile-hit-sfx} @self
+  - skill{s=test-chainmissile-hit-sfx} @origin
+
+test-chainmissile-hit-sfx:
+  Skills:
+  - sound{s=entity.player.attack.knockback;pitch=2}
+  - sound{s=entity.player.attack.crit;pitch=4} 

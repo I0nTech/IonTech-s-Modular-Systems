@@ -1,0 +1,37 @@
+test-combo_sword:
+  Id: DIAMOND_SWORD
+  Display: "<#DC143C>Combo Sword"  
+  Lore:
+  - "&6Combo &r&8» <#DC143C>Test Combo &e3🕑"
+  - "&o&7Consecutive hits cause different effects!"
+  Skills:
+  - skill{s=[
+      - skill{s=combo-apply;maxcombo=5;reset=3;
+        name="Randomness";id=test-shot-exec;
+        spellcooldown=3}
+      - skill{s=combo-hit;id=test-shot-exec;
+        1=[ - message{m="Hit 1"} ];
+        2=[ - message{m="Hit 2"} ];
+        3=[ - message{m="Hit 3"} ];
+        4=[ - message{m="Hit 4"} ];
+        5=[ - message{m="Hit 5"} ]}
+    ]} @self ~onAttack ?equipslot{slot=HAND}
+
+test-combo_bow:
+  Id: BOW
+  Display: "<#DC143C>Combo Bow"  
+  Lore:
+  - "&6Combo &r&8» <#DC143C>Test Bow Combo &e3🕑"
+  - "&o&7Consecutive hits cause... effects?"
+  Skills:
+  - skill{s=[
+      - skill{s=combo-apply;maxcombo=5;reset=3;
+        name="Randomness2";id=test-spiralshot-exec;
+        spellcooldown=3}
+      - skill{s=combo-hit;id=test-spiralshot-exec;
+        1=[ - vskill{s=[ - message{m=hit testing} ]} @self ];
+        2=[ - vskill{s=arrow_explosive-fire;origin=@selfeyelocation;damage="1.2*<caster.damage>";delay=2} @trigger{yo=1.5} ];
+        3=[ - message{m="Hit 3"} ];
+        4=[ - message{m="Hit 4"} ];
+        5=[ - message{m="Hit 5"} ]}
+    ]} @self ~onBowHit ?equipslot{slot=HAND}

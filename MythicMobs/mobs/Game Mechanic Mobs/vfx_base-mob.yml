@@ -1,0 +1,9 @@
+vfx_base:
+  Type: ARMOR_STAND
+  Display: "VFX"
+  Options:
+    Marker: true
+    HasGravity: false
+    Invisible: true
+    Invincible: true
+    

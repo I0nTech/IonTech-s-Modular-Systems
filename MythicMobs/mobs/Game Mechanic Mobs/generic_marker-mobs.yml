@@ -1,0 +1,20 @@
+generic_marker:
+  Type: ARMOR_STAND
+  Faction: Structures
+  Display: 'Marker'
+  Options:
+    Invisible: true
+    Marker: true
+
+generic_living_marker:
+  Type: ARMOR_STAND
+  Faction: Structures
+  Display: 'Living Marker'
+  Options:
+    Invisible: true
+    Silent: true
+    NoAI: false
+    Invincible: true
+ #   VisibleByDefault: true
+    HasGravity: true
+  #  Marker: true

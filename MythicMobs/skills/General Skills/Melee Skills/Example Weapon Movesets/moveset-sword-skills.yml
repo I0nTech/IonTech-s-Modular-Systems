@@ -1,0 +1,45 @@
+moveset-sword-exec:
+  Skills:
+  - skill{s=moveset-exec;maxmoveset=4;reset=2;
+          1=slash-sword-1;
+          2=slash-sword-2;
+          3=slash-sword-3;
+          4=slash-sword-4} @self
+
+slash-sword-base:
+  Skills:
+  - skill{s=slash-exec;origin=@selfeyelocation{yo=-0.2};branch=true;
+          vfx=slash-sword-vfx;
+          roll=<skill.roll|0>;
+          hit=slash-sword-hit;
+          radius=3;width=1;damage=<skill.damage|8>} @forward{f=12;uel=true}
+     #     hit=slash-sword-hit;
+
+slash-sword-1:
+  Skills:
+  - skill{s=slash-sword-base;arc=90;roll="30+20*<random.-1to1>";duration=5;twoside=false}
+
+slash-sword-2:
+  Skills:
+  - skill{s=slash-sword-base;arc=120;roll="90+20*<random.-1to1>";duration=5;twoside=false}
+
+slash-sword-3:
+  Skills:
+  - skill{s=slash-sword-base;arc=140;points=48;yaw=25;roll="-140+20*<random.-1to1>";duration=6;twoside=false}
+
+slash-sword-4:
+  Skills:
+  - skill{s=slash-sword-base;arc=180;yaw=-40;roll="-210+20*<random.-1to0>";duration=5;twoside=false}
+
+slash-sword-vfx:
+  Skills:
+#  - effect:particleline{fo=true;p=crit;a=1;speed=0;db=0.06;hs=0.05;vs=0.05} @ProjectileForward{f="-<skill.var.currentwidth>"}
+  - effect:particleline{fo=true;p=spark;a=1;speed=0.1;db=0.03} @ProjectileForward{f="-<skill.var.currentwidth>/2"}
+  - effect:particleline{fo=true;p=dust_color_transition;color1="#F5F5DC";color2="#F9F6EE";size="0.5*(<skill.var.currentwidth>/<skill.width>)+1";a=1;db=0.2} @ProjectileForward{f="-<skill.var.currentwidth>"}
+
+slash-sword-hit:
+  Skills:
+  - e:p{p=CLOUD;a=5;speed=0.1} @LOT{yo=1}
+  - e:p{p=SMOKE_NORMAL;a=5;speed=0.5} @LOT{yo=1}
+  - e:p{p=CRIT;a=12;speed=1} @LOT{yo=1}
+  - skill{s=slash-hit_entity}

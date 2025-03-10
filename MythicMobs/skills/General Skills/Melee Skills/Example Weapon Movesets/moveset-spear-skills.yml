@@ -1,0 +1,58 @@
+moveset-spear-exec:
+  Skills:
+  - skill{s=moveset-exec;maxmoveset=4;reset=3;
+          uppercut=spear_stab-uppercut;
+          1=spear_stab-exec;
+          2=spear_stab-exec;
+          3=slash-spear-3;
+          4=slash-spear-4} @self
+
+slash-spear-base:
+  Skills:
+  - skill{s=slash-exec;origin=@selfeyelocation{yo=-0.2};branch=true;
+          vfx=slash-spear-vfx;
+          hit=slash-spear-hit;
+          roll=<skill.roll|0>;
+          radius=4;width=1.6;damage=<skill.damage|8>;points=24;basewidth=0.4} @forward{f=12;uel=true}
+
+slash-spear-1:
+  Skills:
+  - skill{s=slash-spear-base;arc=120;yaw=-10;roll="30+20*<random.-1to1>";duration=5;twoside=false}
+
+#Replace with Stab.
+
+slash-spear-2:
+  Skills:
+  - skill{s=slash-spear-base;arc=110;points=48;yaw=10;roll="-180-20*<random.0to1>";duration=6;twoside=false}
+
+slash-spear-3:
+  Skills:
+  - skill{s=slash-spear-base;arc=90;yaw=10;roll="-135+20*<random.-1to1>";duration=5;twoside=false}
+
+slash-spear-4:
+  Skills:
+  - skill{s=slash-spear-base;arc=90;yaw=-10;roll="120+20*<random.-1to1>";duration=5;twoside=false}
+
+
+slash-spear-vfx:
+  Skills:
+#  - effect:particleline{fo=true;p=spark;a=1;speed=0.1;db=0.1} @ProjectileForward{f="-<skill.var.currentwidth>/3"}
+  - setvariable{var=skill.iteration;value="<skill.var.iteration>+1"}
+  - setvariable{var=skill.progress;value="<skill.var.iteration>/<skill.var.points>";type=FLOAT}
+#  - message{m=<skill.var.iteration> <skill.var.progress>} @self
+  
+  - slash{fromorigin=true;origin=@origin;mpd=false;dtt=true;fo=0;yo=0;
+    angle=360;points=2;w=<skill.var.radius>;h=<skill.var.radius>;duration=0;pitch=90;roll="<skill.var.iteration>*24";
+    oP=[
+    - e:p{fo=true;origin=@ProjectileForward{f=0};p=SPARK;a=1;directional=true;speed="1+<skill.var.progress>"} @targetedlocation
+    ]} @ProjectileForward{f=4}
+  
+  - effect:particleline{fo=true;p=dust_color_transition;color1="<skill.color1|#FAE9DA>";color2="<skill.color2|#FAE9DA>";
+    size=<skill.var.currentwidth>;a=1;db=0.1} @ProjectileForward{f="-<skill.var.currentwidth>"}
+
+slash-spear-hit:
+  Skills:
+  - e:p{p=CLOUD;a=5;speed=0.1} @LOT{yo=1}
+  - e:p{p=SMOKE_NORMAL;a=5;speed=0.5} @LOT{yo=1}
+  - e:p{p=CRIT;a=12;speed=1} @LOT{yo=1}
+  - skill{s=slash-hit_entity}

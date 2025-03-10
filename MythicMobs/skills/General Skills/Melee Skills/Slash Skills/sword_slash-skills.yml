@@ -1,0 +1,60 @@
+## SLash Examples
+## Can be used as is, but recommend you mess with the values a bit!
+
+slash-normal-exec:
+  Skills:
+  - sound{s=gore.lightslash;pitch=0.6} @self  
+  - skill{s=slash-exec;origin=@selfeyelocation{yo=-0.25};
+          color1=#7fffd;color2=#6C2DC7;
+          arc=90;points=16;radius=3;width=1.2;duration=4;
+          roll=<random.-24to24>;
+          damage=<skill.damage|8>} @forward{f=12;uel=true}
+
+slash-wide-exec:
+  Skills:
+  - sound{s=gore.lightslash;pitch=0.6} @self  
+  - skill{s=slash-exec;origin=@selfeyelocation{yo=-0.25};
+          color1=#7fffd;color2=#6C2DC7;
+          radius=4;width=2;damage=<skill.damage|8>;arc=270;duration=9;roll=<random.-12to12>} @forward{f=12;uel=true}
+          
+slash-x-exec:
+  Skills:
+  - sound{s=gore.lightslash;pitch=0.6} @self  
+  - skill{s=slash-exec;origin=@selfeyelocation{yo=-0.25};
+          branch=true;twoside=false;
+          color1=#7fffd;color2=#6C2DC7;
+          radius=3;width=1.2;damage=<skill.damage|8>;arc=90;duration=5;roll=45;kb=2;kby=1} @forward{f=12;uel=true}
+  - delay 8
+  - sound{s=gore.lightslash;pitch=0.6} @self  
+  - skill{s=slash-exec;origin=@selfeyelocation{yo=-0.25};
+          branch=true;twoside=false;
+          color1=#7fffd;color2=#6C2DC7;
+          radius=3;width=1.2;damage=<skill.damage|8>;arc=90;duration=5;roll=135;kb=9} @forward{f=12;uel=true}
+
+slash-vert-exec:
+  Skills:
+  - sound{s=gore.lightslash;pitch=0.6} @self  
+  - skill{s=slash-exec;origin=@selfeyelocation{yo=-0.25};
+          color1=#7fffd;color2=#6C2DC7;
+          radius=3;width=1.2;damage=<skill.damage|8>;arc=180;duration=6;roll=<random.75to105>;twoside=false} @forward{f=12;uel=true}
+
+slash-vertwide-exec:
+  Skills:
+  - sound{s=gore.lightslash;pitch=0.6} @self  
+  - skill{s=slash-exec;origin=@selfeyelocation{yo=-0.25};
+          color1=#7fffd;color2=#6C2DC7;
+          radius=3;width=1.6;damage=<skill.damage|8>;arc=180;duration=6;twoside=false;
+          yaw="-<skill.arc>/2+45";roll=<random.75to105>} @forward{f=12;uel=true}
+
+slash-multi-exec:
+  Skills:
+  - skill{s=slash-multi;repeat=4;repeatinterval=5} @forward{f=12;uel=true}
+
+slash-multi:
+  Skills:
+  - sound{s=gore.lightslash;pitch=0.6} @self  
+  - skill{s=slash-exec;origin=@selfeyelocation{yo=-0.25};
+          branch=true;
+          color1=#7fffd;color2=#6C2DC7;
+          radius=3;width=0.6;damage=<skill.damage|8>;arc=90;duration=6;roll=<random.-90to90>} @forward{f=12;uel=true}
+

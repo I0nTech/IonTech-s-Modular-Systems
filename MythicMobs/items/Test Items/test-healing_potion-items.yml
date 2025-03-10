@@ -1,0 +1,58 @@
+base-potion:
+  Id: potion
+  Enchantments:
+  - MENDING
+  Hide:
+  - ENCHANTS
+ 
+base-splash_potion:
+  Id: splash_potion
+  Enchantments:
+  - MENDING
+  Hide:
+  - ENCHANTS
+
+heal-potion-weak:
+  Template: base-potion
+  Display: 'Weak Healing Potion'    
+  Lore:
+  - "<gray>Heals <white>35%</white> of your maximum health"
+  - "<gray>over <white>1.5 seconds.</white> Interrupted when"
+  - "<white>taking damage."
+  Options:
+    Color: 170,255,0
+  Skills:
+  - skill{s=heal-apply;heal=0.35;duration=1.5;interval=1} @self ~onConsume
+
+heal-potion:
+  Template: base-potion
+  Display: 'Healing Potion'    
+  Lore: 
+  - "<gray>Heals <white>70%</white> of your maximum health"
+  - "<gray>over <white>4 seconds.</white> Interrupted when"
+  - "<white>taking damage."
+  Options:
+    Color: 170,255,0
+  Skills:
+  - skill{s=heal-apply;heal=0.7;duration=4;interval=1} @self ~onConsume
+
+heal-potion-strong:
+  Template: base-potion
+  Display: 'Strong Healing Potion'    
+  Lore: 
+  - "<gray>Heals <white>120%</white> of your maximum health"
+  - "<gray>over <white>12 seconds.</white> Interrupted when"
+  - "<white>taking damage."
+  Options:
+    Color: 170,255,0
+  Skills:
+  - skill{s=heal-apply;heal=1.2;duration=12;interval=1} @self ~onConsume
+
+potion-ichor:
+  Template: base-potion
+  Display: '&fPotion of Ichor'
+  Options:
+    Color: 255,215,0
+  PotionEffects:
+  - ABSORPTION 3600 2
+  - REGENERATION 180 1

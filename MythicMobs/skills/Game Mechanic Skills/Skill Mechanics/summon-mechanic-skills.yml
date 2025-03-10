@@ -1,0 +1,39 @@
+summon-exec:
+  Skills:
+  - summon{t=test-summon;sip=true;sio=true} @self
+
+summon2-exec:
+  Skills:
+  - summon{t=test-summon2;sip=true;sio=true} @self
+
+summon-init:
+  Skills:
+  - setvar{var=caster.debug;val=<caster.var.debug|false>;type=STRING;save=true}
+  - setvar{var=caster.model_id;val=<caster.var.model_id>;type=STRING;save=true}
+  
+  - setvar{var=caster.owneruuid;val=<target.uuid>;type=STRING;save=true} @parent ?!varisset{var=caster.owneruuid}
+  - setvar{var=caster.ownername;val=<target.name>;type=STRING;save=true} @UUID{u=<caster.var.owneruuid>} ?!varisset{var=caster.ownername}
+  - setparent @UUID{u=<caster.var.owneruuid>} 
+  - setowner @UUID{u=<caster.var.owneruuid>} 
+  
+  - setvar{var=caster.combatstate;val=1;type=INTEGER;save=true} # 1: Idle 2: Low Alert 3: High Alert 4: Combat
+  - setstance{s=idle} ?stance{s=default}
+  
+  - setname{name="&f<caster.var.ownername>'s <caster.name>"}
+#  - skill{s=summon-updatemodels}
+
+#summon-updatemodels:
+#  Skills:
+
+summon-tick:
+  Skills: 
+  - skill{repeat=9;repeatinterval=1;
+    s=[
+    - look{headOnly=true;immediately=true} @target ?!hasaura{a=#pathing}
+    - tracklocation @targetlocation 
+    ]} ?inCombat ?targetinlineofsight
+  
+summon-death:
+  Skills:
+  - message{m="<dark_grey>[<red>!<dark_grey>] <grey>Your <white><caster.name> <grey>has fallen."} @UUID{u=<caster.var.owneruuid>}
+

@@ -1,0 +1,36 @@
+timer-test:
+  Skills:
+  - skill{s=timer-summon;duration=12;name="Test Skill"} @targetlocation
+
+timer-summon:
+  Skills:
+  - summon{type=timer-display;os=false;then=[ - sudoskill{cat=true;s=timer-init} @targeted ]}
+
+timer-init:
+  Skills:
+  - setvar{var=caster.name;val=<skill.name|Unknown>;type=STRING;save=true}
+  - setvar{var=caster.ownername;val=<trigger.name>;type=STRING;save=true}
+  - setvar{var=caster.owneruuid;val=<trigger.uuid>;type=STRING;save=true}
+  - setvar{var=caster.duration;val=<skill.duration|10>;type=FLOAT;save=true}
+
+  - skill{s=timer-start}
+
+timer-start:
+  Skills:
+#  - message{m=<caster.var.name> <skill.duration>} @PIR{r=100}
+  - aura{d="<skill.duration|6>*20";i=1;
+    os=[
+    - skill{s=timer-updatedisplay}
+    ];
+    ot=[
+    - skill{s=timer-updatedisplay}
+    ];
+    oe=[ 
+    - remove @self 
+    ]}
+
+timer-updatedisplay:
+  Skills:
+  - settextdisplay{text="<#03DF04><caster.var.name> <yellow>%math_1:_<skill.var.aura-duration>/20%s<newline><aqua><i>Casted by <caster.var.ownername>";delay=1} @self
+
+
