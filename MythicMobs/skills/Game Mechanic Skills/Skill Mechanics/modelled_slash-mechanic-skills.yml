@@ -50,9 +50,9 @@ modelled_slash-exec:
 modelled_slash-summon:
   Skills:
   - skill{s=modelled_slash-init}
-  - skill{s=slash-exec;
-    vfx=<skill.vfx|none>;
-    roll=<skill.var.roll>;duration=<skill.duration|7>;twoside=false} @targetedlocation
+  - skill:Slash{roll=<skill.var.roll>;duration=<skill.duration|7>;twoside=false;vfx=<skill.vfx|none>} @targetedlocation
+
+  - setVarLoc{var=target_direction;val=@targetedlocation}
   - summon{t=vfx_base;sip=true;os=false;
     then=[
       - sudoskill{s=modelled_slash-start} @targeted

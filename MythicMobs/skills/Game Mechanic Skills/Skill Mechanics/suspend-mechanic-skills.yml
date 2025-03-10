@@ -1,3 +1,7 @@
+Suspend:
+  Skills:
+  - skill{s=suspend}
+  
 suspend:
   Skills:
   - setvar{var=suspend;val="<skill.suspend|10>";type=FLOAT}
@@ -8,7 +12,7 @@ suspend:
 
 suspend-check:
   Skills:
-  - aura{auraname=suspend_check;d=20;i=1;ma=true;
+  - aura{auraname=suspend_check;d=20;i=1;ma=true;sync=true;
     ot=[
       - skill{s=[
         - skill{s=suspend-start}
@@ -20,7 +24,7 @@ suspend-start:
   Conditions:
   - hasaura{aura=suspend_check}
   Skills:
-  - onDamaged{name=suspend;d=<skill.var.suspend>;i=1;ma=true;rd=true;
+  - onDamaged{name=suspend;d=<skill.var.suspend>;i=1;ma=true;rd=true;sync=true;
     os=[
     - velocity{m=multiply;x=0.8;y=1.1;z=0.8;relative=false}
     - skill{s=stun;duration="<skill.var.suspend>/20"}
@@ -32,7 +36,7 @@ suspend-start:
     ]}
     
 suspend-onhit:
-  Conditions:
+  TargetConditions:
   - damagecause{cause=FALL} false
   - damagecause{cause=SUFFOCATION} false
   - damagecause{cause=STARVATION} false
@@ -44,5 +48,4 @@ suspend-onhit:
   Skills:
   - removeaura{aura=suspend}
   - lunge{v=0;vy=0.3} ?!altitude{h=0-3}
-  - sudoskill{s=[ - lunge{v=0;vy=0.3} ?!altitude{h=0-3} ]} @trigger
   - skill{s=suspend;suspend="<skill.var.suspend>/2";delay=6}
