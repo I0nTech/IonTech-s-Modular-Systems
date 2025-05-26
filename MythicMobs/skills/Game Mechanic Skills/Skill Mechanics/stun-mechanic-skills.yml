@@ -9,14 +9,15 @@ stun:
 
 stun-apply:
   Skills:
+  - setvar{var=stun;val=<skill.duration|<skill.var.stun|0>>;type=FLOAT} 
   - e:p{p=CRIT;a=12;y=1;hs=0.3;ys=0.3;speed=0.5}
-  
-  - orbital{name=stun;d="<skill.duration|1>*20";i=1;ma=true;
+#  - message{m="Stunned for <skill.var.stun>s"} @self
+  - orbital{name=stun;d="<skill.var.stun>*20";i=1;ma=true;
     bartimer=true;bartimertext="<yellow>Stunned! <yellow>%math_1:_<skill.var.aura-duration>/20%s";bartimercolor=YELLOW;
     os=stun-start;
     ot=stun-tick;
     oe=stun-end;
-    r=0.8;p=20;oy=2.25;hp=false;hnp=false}
+    r=0.8;p=20;oy=2.25;hp=false;hnp=false} ?varinrange{var=stun;val=>0}
 
 stun-start:
   Skills:

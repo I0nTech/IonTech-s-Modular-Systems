@@ -16,23 +16,23 @@ moveset-exec:
   Conditions:
   - offGCD true
   - hasaura{aura=clickcombo-input} false
-  - hasaura{name=stun} castinstead stun-oncast
+#  - hasaura{name=stun} castinstead stun-oncast
   Skills:
   - skill{s=eval-hit} @self
-  - CancelEvent{sync=true} ?~isPlayer
-  - modifyDamage{a=0;action=MULTIPLY;sync=true} ?~!isPlayer
-  - aura{aura=denykb;d=10} @trigger 
+ # - CancelEvent{sync=true} ?~isPlayer
+ # - modifyDamage{a=0;action=MULTIPLY_BASE;sync=true} #?~!isPlayer
+  - aura{name=denykb;ma=true;d=8} @trigger 
   - skill{s=moveset-start}
 
 moveset-start:
 #  Cooldown: 0.05
   Skills:
   - setvariable{var=caster.moveset_index;value="0"} ?!variableisset{var=caster.moveset_index} 
-  - setvariable{var=caster.moveset_index;value="<caster.var.moveset_index>+1"}
   - setvariable{var=caster.maxmoveset;value=<skill.maxmoveset|3>} 
+  - setvariable{var=caster.moveset_index;value="min(<caster.var.maxmoveset>,<caster.var.moveset_index>+1)"}
 
   - aura{name=movesetreset;d="<skill.reset|1>*20";ma=true;oe=moveset-reset;bartimer=false}
-  - setvariable{var=skill.executeskill;value="<caster.var.moveset_index>";type=STRING}
+  - setvariable{var=executeskill;value="<caster.var.moveset_index>";type=STRING}
   - setvariable{var=crit;value=<skill.crit|<skill.<skill.var.executeskill>>>;type=STRING} 
 
   - switch{condition=varequals{var=skill.hit;value=<case>};cases=

@@ -1,0 +1,99 @@
+burning_blast-cast:
+  Skills:
+  - skill:Spell{id=burning_blast;name=Burning Blast;type=FIRE;
+      onChannelStart=burning_blast-exec;
+      damage=10;mana_charge=8;
+      spellcd=3;warmup=0.6}
+
+# Form and unleash a burning ball of magma. Upon impact, damages and ignites all targets in a small radius.
+
+burning_blast-exec:
+  Skills:
+  - skill:setRandomID
+  - skill:projectile_barrage{origin=@forward{uel=true;f=1;yo=-0.2};
+    id=burning_blast-fire} @forward{yo=-0.2;f=12;uel=true}
+
+burning_blast-fire:
+  Skills:
+  - setvarloc{var=originloc;v=@origin}
+  - setvar{var=fired;val=0}
+  - projectile{fo=true;ti=3;syo=0;sfo=0;hnp=true;se=true;ham=true;
+      velocity='0.1';i=1;g=0;
+      maxrange='32*<skill.var.range|1>';
+      hradius='0.4*<skill.var.size|1>';vr='0.4*<skill.var.size|1>';drawhitbox=false;
+      bullet=DISPLAY;material=magma;rots=0,12,12;scale=0.5,0.5,0.5;
+      onStart=burning_blast-start;
+      onTick=burning_blast-tick;
+      onHit=burning_blast-hit_entity;
+      onEnd=burning_blast-end}
+
+burning_blast-start:
+  Skills:
+  - wait{c=[ - hasAura{name=channelling} false ]}
+  - delay 1
+  - modifyprojectile{t=VELOCITY;a=SET;v=12}
+  - modifyprojectile{t=VELOCITY;a=ADD;v=1;repeat=6;repeati=4}
+  - setvar{var=fired;val=1}
+#  - message{m="FIRED"}
+
+burning_blast-tick:
+  Skills:
+  - setvar{var=iterations;value="<skill.var.iterations|0>+1"}
+  - skill:burning_blast-retarget
+  - skill:burning_blast-tick_vfx
+
+burning_blast-retarget:
+  Conditions:
+  - varequals{var=fired;val=0}
+  Skills:
+  - setvar{var=pitch;val="<skill.var.pitch|0>+12"} 
+  - setvar{var=yaw;val="<skill.var.yaw|0>+12"}
+  - setvar{var=roll;val="<skill.var.roll|0>+12"}
+
+  - polygon{points=1;scale=1;db=0.5;mpd=false;
+    pitch=<skill.var.pitch>;yaw=<skill.var.yaw>;roll=<skill.var.roll>;
+      oe=[ 
+      - e:p{p=small_flame;fo=true;origin=@targetedlocation;directional=true;a=1;speed=0.2} @projectileforward{f=0}
+      ]} 
+
+  - raytraceto{fo=true;origin=@selfeyelocation;md=64;rw=0.1;ys=0;yt=0;
+    locationskill=[
+    - setProjectileDirection{magnitude=1}
+    ]} @forward{f=12;uel=true}
+
+burning_blast-tick_vfx:
+  Conditions:
+  - varequals{var=fired;val=1}
+  Skills:
+  - setvarloc{var=originloc;v=@ProjectileForward{f=-4}}
+  - slash{fromorigin=true;origin=@origin;mpd=false;dtt=true;fo=0;yo=0;
+    angle=360;points=2;w=<skill.var.size|1>;h=<skill.var.size|1>;duration=0;pitch=90;roll="<skill.var.iterations>*24";
+    oP=[
+    - e:p{fo=true;origin=@VariableLocation{var=originloc};p=small_flame;a=1;directional=true;speed=0.3;hs=0.2;vs=0.2} @targetedlocation
+    ]}
+
+burning_blast-hit_entity:
+  Skills:
+  - throw{fo=true;v=6;vy=3}
+  - skill:spell_damage-aoe{onSpellHit=burning_blast-damage} 
+
+burning_blast-damage:
+  Skills:
+  - e:p{p=flame;speed=0.1;a=12;hs=0.4;vs=0.6;y=1}
+  - skill:spell_damage-aoe
+  - skill:mana_charge-spell{mana=<skill.var.mana_charge>}
+  - ignite{t=80}
+
+burning_blast-end:
+  Skills:
+  - skill{s=burning_blast-hit_entity} @ENO{r=3}
+  - skill{s=vfx-phoenix_explosion}
+  - sound{s=entity.generic.explode;p=1.2} 
+  - e:p{p=flame;a=12;speed=0.3}
+  - e:pr{p=flame;radius=0.1;points=12;a=1;speed=0.4;hS=0.20;vS=0.8;directional=true} 
+
+  - e:p{p=reddust;color=#ff0000;amount=4;speed=0;hS=0.40;vS=0.4;size=2}
+  - e:p{p=reddust;color=#ff6600;amount=4;speed=0;hS=0.40;vS=0.4;size=2}
+  - e:p{p=reddust;color=#ff0000;amount=1;speed=0;hS=0.40;vS=0.4;size=5}
+  - e:p{p=reddust;color=#ffaa00;amount=1;speed=0;hS=0.40;vS=0.4;size=5}
+  

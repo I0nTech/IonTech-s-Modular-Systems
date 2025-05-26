@@ -46,7 +46,8 @@ slash-init:
   - setvar{var=kb;val="<skill.kb|7>";type=FLOAT}
   - setvar{var=kby;val="<skill.kby|4>";type=FLOAT}
   - setvar{var=scalekb;val="<skill.scalekb|true>";type=STRING}
-  - setvar{var=denykbonhit;val="<skill.denykbonhit|true>";type=STRING}
+  - setvar{var=custom;val="<skill.custom|<skill.usecustom|<skill.denykbonhit>>>>";type=STRING}
+ # - setvar{var=triggerskills;val="<skill.triggerskills|<skill.ts|true>>>";type=STRING}
 
   - setvarloc{var=originloc;v=@origin}
 
@@ -84,7 +85,7 @@ slash-hit_fire:
   Skills: 
   - projectile{fo=true;origin=@VariableLocation{var=originloc};ti=1;syo=0;sfo=0;    
     onHit=slash-hit_logic;drawHitbox=false;
-    hitconditions=[ - isLiving true ];
+    hitconditions=[ - isLiving true  ];
     ham=true;v=<skill.var.velocity>;mr=<skill.var.hitradius>;md=4;i=1;g=0;hR=<skill.var.hitboxsize>;vR=<skill.var.hitboxsize>;hnp=true;se=false;sb=true}
   #- vskill{s=[
   #   - raytraceto{fo=true;origin=@VariableLocation{var=originloc};md=12;rw=1;locationskill=slash-debug123;entityskill=slash-hit_logic}
@@ -94,13 +95,21 @@ slash-debug123:
   Skills:   
   - e:pl{fromorigin=true;p=spark;a=1}
 
+
 slash-vfx_logic:
   Skills:
 #  - setvar{var=iteration;val="<skill.var.iteration>+1"}
 #  - setvar{var=progress;val="<skill.var.iteration>/<skill.var.points>";type=FLOAT}
 #  - message{m=<skill.var.iteration> <skill.var.progress>} @self
   - setvar{var=currentwidth;val="<skill.var.currentwidth>+(<skill.var.width>-<skill.var.basewidth>)/<skill.var.points>";type=FLOAT}
-  - vskill{s=<skill.vfx|slash-vfx>}
+  - vskill{s=<skill.vfx|slash-default_vfx>}
+
+# Default VFX
+slash-default_vfx:
+  Skills:
+  - e:pl{fo=true;p=spark;a=1;speed=0.1;db=0.1} @ProjectileForward{f="-<skill.var.currentwidth>/3"}
+  - e:pl{fo=true;p=dust_color_transition;color1="<skill.color1|#FAE9DA>";color2="<skill.color2|#FAE9DA>";
+    size="<skill.var.currentwidth>+0.5";a=1;db=0.1} @ProjectileForward{f="-<skill.var.currentwidth>"}
 
 slash-hit_logic:
   TargetConditions:
@@ -110,82 +119,109 @@ slash-hit_logic:
   Skills:
   - setvar{var=damage;val=<skill.damage|<skill.var.damage|<caster.damage>>>;type=FLOAT} #?!varisset{var=damage}
   - skill{s=setRandomID} ?!varisset{var=randomid}
+  - setvarloc{var=impact_origin;val=@targetedLocation} @projectileforward{f=-1}
+  - setvarloc{var=impact_target;val=@targetedLocation} @projectileforward{f=2}
+
   - aura{name=<skill.var.randomid>;type=iframes;d=<skill.immune|3>;ma=true;rd=true;
     os=[ 
       - vskill{s=<skill.hit|slash-hit_entity>} 
     ]} 
 
-# Default VFX and Hit 
-slash-vfx:
-  Skills:
-  - e:pl{fo=true;p=spark;a=1;speed=0.1;db=0.1} @ProjectileForward{f="-<skill.var.currentwidth>/3"}
-  - e:pl{fo=true;p=dust_color_transition;color1="<skill.color1|#FAE9DA>";color2="<skill.color2|#FAE9DA>";
-    size="<skill.var.currentwidth>+0.5";a=1;db=0.1} @ProjectileForward{f="-<skill.var.currentwidth>"}
-
 slash-hit_entity:
   Skills:
-  - damage{a=<skill.var.damage>;pi=true;pkb=false;tags=MELEE}
-#  - shieldbreak{duration=100} #?holding{m=*AXE}
-  - skill{s=slash-hit-kb}
-  - skill{s=suspend} 
-  - skill{s=vfx-slash_impact;state=<skill.state|horizontal>;scale=0.8}
- 
+  - hit{m=<skill.var.damage>;pi=true;pkb=true;tags=MELEE;forcedDamage=true;ts=true} @targeted{c=[ - hasaura{aura=denykb} false ]}
+  - hit{m=<skill.var.damage>;pi=true;pkb=true;tags=MELEE;forcedDamage=true;ts=true} ?varequals{var=custom;val=true}
+#  - skill{s=vfx-slash_impact;state=<skill.state|horizontal>;scale=0.8}
+  
+  - skill{s=slash-knockback}
+  - skill{s=suspend}
+  
 slash-hit_crit:
   Skills:
-  - damage{a="<skill.var.damage>*1.5";pi=true;pkb=false;tags=MELEE}
-  - shieldbreak{duration=100}
-  - skill{s=slash-hit-kb}
+  - hit{m=<skill.var.damage>*1.5;pi=true;pkb=true;tags=MELEE;forcedDamage=true;ts=true} @targeted{c=[ - hasaura{aura=denykb} false ]}
+  - hit{m=<skill.var.damage>*1.5;pi=true;pkb=true;tags=MELEE;forcedDamage=true;ts=true} ?varequals{var=custom;val=true}
+#  - skill{s=vfx-slash_impact;state=<skill.state|vertical>;scale=0.8}
+
+  - skill{s=slash-knockback}
+  - skill{s=crit-sfx} @targeted{c=[ - hasaura{aura=denykb} false ]}
+
+crit-sfx:
+  Skills:
   - sound{s=entity.player.attack.crit}
   - sound{s=entity.player.attack.crit;audience=@self} @self
-  - skill{s=vfx-slash_impact;state=<skill.state|vertical>;scale=0.8}
 
 slash-hit_uppercut:
   Skills:
-  - damage{a="<skill.var.damage>";pi=true;pkb=false;tags=MELEE}
-  - shieldbreak{duration=100}
-  - skill{s=suspend} 
-  - skill{s=slash-hit-kb}
-  - skill{s=vfx-slash_impact;state=<skill.state|vertical>;scale=0.8}
+  - damage{a=<skill.var.damage>;pi=true;pkb=true;tags=MELEE;ts=true} @targeted{c=[ - hasaura{aura=denykb} false ]}
+  - damage{a=<skill.var.damage>*1.5;pi=true;pkb=true;tags=MELEE;ts=true} ?varequals{var=custom;val=true}
+#  - skill{s=vfx-slash_impact;state=<skill.state|vertical>;scale=0.8}
 
-slash-hit-kb:
-   TargetConditions:
-   - altitude{h=0-3} orelsecast slash-hit-kb_onattack
-   - isPlayer castinstead slash-hit-kb_onattack
-   Conditions:
-   - varequals{var=denykbonhit;val=false} castinstead slash-hit-kb_onattack
+  - skill{s=slash-knockback;custom=true;scalekb=false}
+  - skill{s=suspend} 
+
+vfx-slash_impact:
+  Skills:
+  - summon{t=vfx_base;os=false;sip=true;then=[
+    - sudoskill{s=[ - skill{s=vfx-slash_impact-init} @self ]} @targeted
+    ]} @variableLocation{var=impact_origin}
+  
+vfx-slash_impact-init:
+  Skills:
+  - message{m=spawned} @server
+
+  - model{mid=vfx_slash_impact;usm=true}
+  - state{mid=vfx_slash_impact;s=<skill.state|impact>;speed=<skill.speed|3>;loop=HOLD}
+  - brightness{b=15;s=15}
+  - tint{m=vfx_slash_impact;c=<skill.color|<skill.impact_color|FFFFFF>>}
+  - scale{s=<skill.scale|1>}
+
+  # Rotation towards target
+ # - e:pl{fo=true;p=reddust;a=1} @variableLocation{var=impact_target}
+  - bodyclamp{player=false;rdelay=0;rduration=0;head=false}
+  - rotatetowards{pitch=true;uel=false;maxyaw=360;maxpitch=360} @variableLocation{var=impact_target}
+
+  - delay 10
+  - remove
+
+slash-knockback:
    Skills:
-   - setvar{var=targety;val="<target.l.y>";type=FLOAT} @targeted
+   - skill{s=slash-strong_knockback;origin=@selflocation{cy=<skill.var.targety>}} @targeted ?varequals{var=scalekb;val=false}
+   - return ?varequals{var=scalekb;val=false}
+
+   - skill{s=slash-knockback-evaluate} @targeted{c=[ - hasaura{aura=denykb} false ]} #?varequals{var=custom;val=false}
+ #  - skill{s=slash-knockback-evaluate} ?varequals{var=custom;val=true}
+
+slash-knockback-evaluate:
+  Skills:
+   - setvar{var=targety;val="<target.l.y>";type=FLOAT} @targeted  
    #- message{m=<skill.var.hit>} @self
    - switch{condition=varequals{var=hit;val=<case>};
      origin=@selflocation{cy=<skill.var.targety>};
      cases=
-       case HIT=[ - skill{s=slash-hit-kb_weak} ]
-       case CRIT=[ - skill{s=slash-hit-kb_weak} ]
-       case DEFAULT=[ - skill{s=slash-hit-kb_strong} ]
-     } @targeted{conditions=[ - hasaura{aura=denykb} true ]}
-   - skill{s=slash-hit-kb_strong;origin=@selflocation{cy=<skill.var.targety>}} @targeted{conditions=[ - hasaura{aura=denykb} true ]} ?varequals{var=scalekb;val=false}
+       case HIT=[ - skill{s=slash-weak_knockback} ]
+       case CRIT=[ - skill{s=slash-weak_knockback} ]
+       case DEFAULT=[ - skill{s=slash-strong_knockback} ]
+     }
 
-slash-hit-kb_onattack:
+slash-weak_knockback:
   Skills:
-  - setvar{var=targety;val="<target.l.y>";type=FLOAT} @targeted
-  - switch{condition=varequals{var=hit;val=<case>};
-    origin=@selflocation{cy=<skill.var.targety>};
-    cases=
-      case HIT=[ - skill{s=slash-hit-kb_weak} ]
-      case CRIT=[ - skill{s=slash-hit-kb_weak} ]
-      case DEFAULT=[ - skill{s=slash-hit-kb_strong} ]
-    } @targeted ?varequals{var=scalekb;val=true}
-  - skill{s=slash-hit-kb_strong;origin=@selflocation{cy=<skill.var.targety>}} @targeted ?varequals{var=scalekb;val=false}
-  
-slash-hit-kb_weak:
-  Skills:
-  - skill{s=sfx-slash-hit}
-  - throw{fo=true;v="<skill.var.kb>*0.6";vy="<skill.var.kby>*0.8"} @targeted{conditions=[ - (onGround || altitude{h=0-3} false)]}
+  - skill{s=weak_knockback-sfx}
+  - throw{fo=true;v="<skill.var.kb>*0.6";vy="<skill.var.kby>*0.8"} @targeted{conditions=[ - onGround ]}
   - throw{fo=true;v="<skill.var.kb>*0.6";vy="-<skill.var.kby>*0.8"} @targeted{conditions=[ - ( onGround false && altitude{h=0-3}) ]}
-  
-slash-hit-kb_strong:
+
+weak_knockback-sfx:
+  Skills:
+  - sound{s=entity.player.attack.strong}
+  - sound{s=entity.player.attack.strong;audience=@self} @self
+
+slash-strong_knockback:
   Skills:  
-  - skill{s=sfx-slash-hit_strong}
-  - throw{fo=true;v=<skill.var.kb>;vy=<skill.var.kby>} @targeted{conditions=[ - (onGround || altitude{h=0-3} false)]}
+  - skill{s=strong_knockback-sfx}
+  - throw{fo=true;v=<skill.var.kb>;vy=<skill.var.kby>} @targeted{conditions=[ - onGround ]}
   - throw{fo=true;v=<skill.var.kb>;vy="-<skill.var.kby>"} @targeted{conditions=[ - (onGround false && altitude{h=0-3}) ]}
 
+strong_knockback-sfx:
+  Skills:
+  - skill{s=weak_knockback-sfx}
+  - sound{s=entity.player.attack.knockback}
+  - sound{s=entity.player.attack.knockback;audience=@self} @self

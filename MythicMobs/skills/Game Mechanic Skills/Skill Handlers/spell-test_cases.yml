@@ -1,0 +1,105 @@
+# Cooldown Stuff. 
+cooldown-cast-1:
+  Skills:
+  - skill:Spell{
+      origin=@forward{f=-0.5;yo=-0.2;uel=true};
+      name="Test Shot";
+      id=test-shot-fire;
+      spellcd=200;damage=2.5} @ENO{r=24}
+
+cooldown-cast-2:
+  Skills:
+  - skill:Spell{
+      name="Chain Shot";warmup=2;
+      id=test-chainmissile-cast;
+      spellcd=10} @self
+
+cooldown-cast-3:
+  Skills:
+  - skill:Spell{
+      name="Spiral Shot";
+      id=[ - vskill{s=test-spiralshot-fire;origin=@forward{f=-0.5;yo=-0.2;uel=true}} @forward{f=12;uel=true} ];
+      category=ARCANE;
+      warmup=0.2;charges=3;chargecd=4;spellcd=2}
+
+cooldown-cast-4:
+  Skills:
+  - skill:Spell{
+      origin=@forward{f=-0.5;yo=-0.2;uel=true};
+      name="Spiral Shot Slow";
+      id=test-spiralshot-fire;
+      category=ARCANE;
+      charges=3;chargecd=20;spellcd=6} @forward{f=12;uel=true}
+  - skill{s=spell-modify_charges;name="Spiral Shot Slow";id=test-spiralshot-fire;charges=3;delay=20} @self
+
+mana_charge-test_cast:
+  Skills:
+#  - skill:mana_charge{mana=20} @self
+#  - delay 10
+  - skill:Spell{
+      name="Spiral Shot";category=ARCANE;id=test-spiralshot-exec;displaycd=false;
+      damage=12;mana_cost=-30;
+      charges=3;chargecd=4;spellcd=2} @self
+
+# Metaspell Testing
+metaspell_test:
+  Skills:
+  - skill:metaspell_add{o="- message{m=3}";priority=3}
+  - skill:metaspell_add{o="- message{m=1}";priority=1}
+  - skill:metaspell_add{o="- message{m=6}";priority=6}
+  - skill:metaspell_add{o="- message{m=5}";priority=5}
+  - skill:metaspell_add{o="- delay 20";priority=1}
+  - skill:metaspell_add{o="- message{m=2}";priority=2}
+  - skill:metaspell_add{o="- message{m=4}";priority=4}
+  - skill:metaspell_execute @self
+
+metaspell_test2:
+  Skills:
+  - skill:metaspell_add{o= - message{m=0} @self }
+  - skill:metaspell_add{o= - message{m=1} @self }
+  - skill:metaspell_add{o= - message{m=2} @self }
+  - skill:metaspell_add{o= - message{m=3} @self }
+  - skill:metaspell_add{o= - message{m=4} @self }
+  - skill:metaspell_add{o= 
+    - delay 20
+    - message{m=5} @self 
+    - message{m=6} @self 
+    - message{m=7} @self 
+    - vskill{s=mana_beam-cast} @self
+    }
+  - skill:metaspell_execute{delay=0}
+
+metaspell_test_queue:
+  Skills:
+  - skill{s=metaspell_test_queue-exec;name="Test Cast";id='';
+    warmup=2;spellcd=4;damage=2.5}
+
+metaspell_test_queue-exec:
+  Skills:
+  - skill:metaspell_add{o=- vskill{s=metaspell-overcharge} @self}
+  - skill:metaspell_add{o=- vskill{s=} }
+  - skill:metaspell_add{o= - message{m=2} @self }
+
+metaspell-test_1:
+  Skills:
+  - skill:metaspell_add{o='- vskill{s=metaspell-overcharge} @self'}
+  - skill:metaspell_add{o='- vskill{s=metaspell-overcharge} @self'}
+  - skill:metaspell_add{o='- vskill{s=metaspell-overcharge} @self'}
+  - skill:metaspell_add{o='- vskill{s=metaspell-overcharge} @self'}
+
+
+  - skill:Spell{
+      name="Spiral Shot";
+      id=test-spiralshot-exec;
+      category=ARCANE;damage=12;
+      warmup=0.1;charges=3;chargecd=4;spellcd=2}
+
+metaspell-overcharge:
+  Skills:
+  - message{m=TEST} @self
+  - variableMath{var=damage;equation='x*2'}
+  - variableMath{var=warmup;equation='(x+5)*2'}
+  - variableMath{var=projectiles;equation='x+2'}
+#  - variableMath{var=size;equation='x+1'}
+
+  - message{m=debugger <skill.var.damage> <skill.var.warmup> <skill.var.projectiles>} @self

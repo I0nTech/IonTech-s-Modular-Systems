@@ -1,0 +1,51 @@
+frost_shard-cast:
+  Skills:
+  - skill:Spell{id=frost_shard-exec;name=Frost Shard;type=ICE;
+    damage=7;mana_charge=6;pierce=2;projectiles=1;
+    spellcd=1.5;charges=5;chargecd=5}
+
+#pierce=0;projectiles=1;size=1;
+frost_shard-exec:
+  Skills:
+  - skill:setRandomID
+  - skill:projectile_spread{origin=@forward{uel=true;f=1;yo=-0.2};
+    id=frost_shard-fire} @forward{yo=-0.2;f=12;uel=true}
+
+frost_shard-fire:
+  Skills:
+  - setvarloc{var=originloc;v=@origin}
+  - projectile{fo=true;ti=3;syo=0;sfo=0;hnp=true;se=false;ham=true;
+    velocity='48*<skill.var.velocity|1>';i=1;g=0.1;
+    maxrange='32*<skill.var.range|1>';
+    hradius='0.2*<skill.var.size|1>';vr='0.2*<skill.var.size|1>';drawhitbox=false;
+    onTick=frost_shard-tick;
+    onHit=frost_shard-hit_entity;
+    onEnd=frost_shard-end}
+
+frost_shard-tick:
+  Skills:
+  - e:p{p=block_dust;material=FROSTED_ICE;a=1}
+  - setvar{var=iterations;value="<skill.var.iterations|0>+1"}
+
+  - setvarloc{var=originloc;v=@origin}
+  - slash{fromorigin=true;origin=@origin;mpd=false;dtt=true;fo=0;yo=0;
+    angle=360;points=2;w=<skill.var.size|1>;h=<skill.var.size|1>;duration=0;pitch=90;roll="<skill.var.iterations>*24";
+    oP=[
+    - e:p{fo=true;origin=@VariableLocation{var=originloc};p=spark;a=1;directional=true;speed=0.3} @targetedlocation
+    ]} @ProjectileForward{f=4}
+
+frost_shard-hit_entity:
+  Skills:
+  - skill:spell_damage{onSpellHit=[
+    - vskill{s=frost_shard-damage} 
+    - vskill{s=mana_charge-spell;mana=<skill.var.mana_charge>}
+    ]}
+
+frost_shard-damage:
+  Skills:
+  - freeze{t=40}
+  - e:p{p=snowflake;speed=0.1;a=12;hs=0.4;vs=0.6;y=1}
+  - skill:spell_damage-default
+
+frost_shard-end:
+  Skills:

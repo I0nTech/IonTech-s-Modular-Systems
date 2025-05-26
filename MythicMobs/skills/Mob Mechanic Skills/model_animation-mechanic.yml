@@ -1,6 +1,5 @@
 model_animation:
-#  Conditions:
-#  - stance{s=transition} false
+  Cooldown: 0.05
   Skills:
   - skill{s=model_animation-exec;branch=true}
 
@@ -11,13 +10,11 @@ model_animation-init:
   - setvar{var=state;val=<skill.state|<skill.animation|<skill.attack|none>>>;type=STRING}
   - setvar{var=overwrite;val=<skill.overwrite|<skill.ow|false>>;type=STRING}
 
-  - return ?hasaura{aura=anim-<skill.var.priority>} ?varequals{var=state;val=none}
-  - return ?hasaura{aura=anim-<skill.var.priority>} ?varequals{var=overwrite;val=false}
   - message{m="<red>animation-<skill.var.priority> <skill.var.state> attempt"} @server ?varequals{var=caster.debug;value="true"}
 
   - setvar{var=model_id;val=<skill.mid|<skill.model_id|none>>;type=STRING}
   - setvar{var=part_id;val=<skill.pid|<skill.part_id|none>>;type=STRING}
-  - setvar{var=loop;val=<skill.l|<skill.loop|once>>;type=STRING}
+  - setvar{var=loop;val=<skill.l|<skill.loop|ONCE>>;type=STRING}
   - setvar{var=lerpin;val="<skill.lerpin|<skill.li|0>>";type=FLOAT}
   - setvar{var=lerpout;val="<skill.lerpout|<skill.lo|0>>";type=FLOAT}
 
@@ -37,7 +34,17 @@ model_animation-init:
 model_animation-exec:
   Skills:  
   - skill{s=model_animation-init} @self
-  - aura{name="anim-<skill.var.priority>";type=animation;d=<skill.var.duration>;i=1;ow=true;
+  #- message{m=state-<skill.var.state> anim-<skill.var.priority>} @server ?!hasAuraType{type=anim-2}
+  #- message{m="overriden"} @server ?varequals{var=overwrite;val=true}
+  #- return ?hasAuraType{type=anim-<skill.var.priority>} ?varequals{var=overwrite;val=false}
+  - skill{s=model_animation-start} @self
+
+
+model_animation-start:
+  Conditions:
+  - (hasAuraType{type="anim-<skill.var.priority>"} false || varequals{var=overwrite;val=true})
+  Skills:  
+  - aura{name="state-<skill.var.state>";type="anim-<skill.var.priority>";d=<skill.var.duration>;i=1;ow=false;
     desot=true;cot=false;cod=true;
     os=[ 
     - skill{s=model_animation-debug}
@@ -51,7 +58,7 @@ model_animation-exec:
     oe=[ 
     <#>- state{mid=<skill.var.model_id>;remove=true;s=<skill.var.state>;priority=<skill.var.priority>;li=<skill.var.lerpin>;lo=<skill.var.lerpout>}
     - message{m="animation finished"} @PIR{r=100} ?varequals{var=caster.debug;value="true"}
-    - vskill{s=<skill.var.onEnd>;delay=1}
+    - vskill{s=<skill.var.onEnd>;overwrite=true}
     ]} @self
     
 model_animation-debug:
@@ -98,7 +105,7 @@ model_attack-init:
   - setvar{var=onAttackBegin;val=<skill.ob|<skill.onAttackBegin|none>>;type=STRING}
   - setvar{var=onAttackStart;val=<skill.oas|<skill.onAttackStart|none>>;type=STRING}
 #
-  - setvar{var=onAttackTick;val=<skill.oat|<skill.onAttackTick|none>>;type=STRING}
+  - setvar{var=onAttackTick;val=<skill.oat|<skill.onAttackTick|model_attack-tick-default>>;type=STRING}
   - setvar{var=onAttackActive;val=<skill.oaa|<skill.onAttackActive|none>>;type=STRING}
   - setvar{var=onAttackHitbox;val=<skill.oahb|<skill.onAttackHitbox|model_attack-hitbox-default>>;type=STRING}
   - setvar{var=onAttackHit;val=<skill.oah|<skill.onAttackHit|model_attack-hit_entity>>;type=STRING}
@@ -136,11 +143,8 @@ model_attack:
       - vskill{s=<skill.var.onAttackStart>}
     ];
     onAnimationTick=[
-      - vskill{s=<skill.var.onAttackTick>}
       - vskill{s=model_attack-active}
-      - return ?!varinrange{var=progress;val=<<skill.var.animation_start>}
-      - tracklocation @targetlocation 
-      - rotatetowards{rotatepitch=true;my=<skill.var.rotspeed>;mp=<skill.var.rotspeed>;uel=true} @trackedlocation
+      - vskill{s=<skill.var.onAttackTick>}
     ];
     onAnimationEnd=[
       - vskill{s=<skill.var.onAttackEnd>}
@@ -158,6 +162,13 @@ model_attack-active:
   Skills:
   - vskill{s=<skill.var.onAttackActive>}
   - vskill{s=<skill.var.onAttackHitbox>}
+
+model_attack-tick-default:
+  Conditions:
+  - varinrange{var=progress;val=<<skill.var.animation_start>}
+  Skills:  
+  - tracklocation @targetlocation
+  - rotatetowards{rotatepitch=true;my=<skill.var.rotspeed>;mp=<skill.var.rotspeed>;uel=true} @trackedlocation
 
 model_attack-hitbox-default:
   Skills:  
@@ -179,11 +190,10 @@ model_attack-hit_logic:
 model_attack-hit_entity:
   TargetConditions:
   - isLiving
-  - SameFaction false
+#  - SameFaction false
   Skills:
   - setvar{var=targety;val=<target.l.y>;type=FLOAT}
-  - damage{a=<skill.var.damage>;ii=true;pi=true;pkb=false;tags=ENTITY,MELEE;cause=ENTITY_ATTACK}
-  - throw{fromorigin=true;origin=@selflocation{cy=<skill.var.targety>}} @targeted
+  - damage{a=<skill.var.damage>;ii=true;pi=true;pkb=true;tags=ENTITY,MELEE}
 
 
 

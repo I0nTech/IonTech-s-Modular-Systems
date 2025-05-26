@@ -1,0 +1,57 @@
+void_lance-cast:
+  Skills:
+  - skill:Signature{id=void_lance-exec;name=Void Lance;type=VOID;
+    mana_cost=-40;damage=15;pierce=6;warmup=1;stun=1;
+    spellcd=3}
+
+#pierce=0;projectiles=1;size=1;
+void_lance-exec:
+  Skills:
+  - setvar{var=mana_consumed;val=<caster.var.mana_charge>;type=FLOAT}
+  - variableMath{var=damage;eq='x+x*(<skill.var.mana_consumed>/50)'}
+ # - message{m="Consumed <skill.var.mana_consumed> <skill.var.damage>"} @self
+
+  - skill:mana_charge-signature{mana='-<skill.var.mana_consumed>';delay=1} @self
+  - skill:setRandomID
+  - skill:projectile_spread{origin=@forward{uel=true;f=1;yo=-0.2};
+    id=void_lance-fire} @forward{yo=-0.2;f=12;uel=true}
+
+void_lance-fire:
+  Skills:
+  - setvarloc{var=originloc;v=@origin}
+  - projectile{fo=true;ti=4;syo=0;sfo=0;hnp=true;se=false;ham=true;
+    velocity='64*<skill.var.velocity|1>';i=1;g=0;
+    maxrange='64*<skill.var.range|1>';
+    hradius='0.6*<skill.var.size|1>';vr='0.6*<skill.var.size|1>';drawhitbox=false;
+    onTick=void_lance-tick;
+    onHit=void_lance-hit_entity;
+    onEnd=void_lance-end}
+
+void_lance-tick:
+  Skills:
+  - e:p{fo=true;origin=@projectileforward{f=1};p=reverse_portal;a=1;speed=0;directional=true} @projectileforward{f=0}
+  - setvar{var=iterations;value="<skill.var.iterations|0>+1"}
+
+  - setvarloc{var=originloc;v=@origin}
+  - slash{fromorigin=true;origin=@ProjectileForward{f=-2};mpd=false;dtt=true;fo=0;yo=0;
+    angle=360;points=4;w=<skill.var.size|1>;h=<skill.var.size|1>;duration=0;pitch=90;roll="<skill.var.iterations>*24";
+    oP=[
+    - e:p{fo=true;origin=@VariableLocation{var=originloc};p=portal;a=1;directional=true;speed=1} @targetedlocation
+    - e:p{fo=true;origin=@VariableLocation{var=originloc};p=reverse_portal;a=1;directional=true;speed=0.1} @targetedlocation
+    ]} @ProjectileForward{f=2}
+
+  - slash{fromorigin=true;origin=@origin;mpd=false;dtt=true;fo=0;yo=0;
+    angle=360;points=4;w=<skill.var.size|1>;h=<skill.var.size|1>;duration=0;pitch=90;roll="45+<skill.var.iterations>*12";
+    oP=[
+    - e:p{fo=true;origin=@VariableLocation{var=originloc};p=spark;a=1;directional=true;speed=0.6} @targetedlocation
+    ]} @ProjectileForward{f=4}
+
+void_lance-hit_entity:
+  Skills:
+  - skill:spell_damage
+  - skill:stun
+  - e:p{p=portal;speed=0.3;a=12;hs=0.4;vs=0.6;y=1}
+
+void_lance-end:
+  Skills:
+  

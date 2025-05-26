@@ -1,0 +1,67 @@
+wardstone-init:
+  Skills:
+  - message{m="<caster.var.debug> <caster.var.active_duration> <caster.var.radius> <caster.var.yradius> <caster.var.oninteract> <caster.var.onenter> <caster.var.onexit> <caster.var.claimable> <caster.var.owneruuid>"} @server ?varequals{var=caster.debug;val=true}  
+  - setowner @uuid{u=<caster.var.owneruuid>} ?varisset{var=caster.owneruuid}
+
+# Params:
+# duration radius yradius onenter onexit oninteract claimable owneruuid
+wardstone-setowner:
+  Conditions:
+  - ( varisset{var=caster.owneruuid} false && varequals{var=caster.claimable;val=true} ) orelsecast wardstone-interact
+  Skills:
+  - setvar{var=caster.owneruuid;val=<trigger.uuid>;type=STRING}
+  - setowner @uuid{u=<caster.var.owneruuid>} 
+  - message{m=Set new owner <caster.var.owneruuid>} @trigger ?varequals{var=caster.debug;val=true}
+  - e:p{p=GLOW;amount=12;y=1;hs=0.3;ys=0.6;y=1;speed=0.1} @self 
+  
+wardstone-interact:
+  Skills:
+  - vskill{s=<caster.var.oninteract>} @trigger
+
+wardstone-exec:
+  Conditions:
+  - livinginradius{a=>1;r="<caster.var.active_radius|<caster.var.radius>*4>"} true
+  Skills:
+  - vskill{s=<caster.var.start|none>}
+  - totem{d="<caster.var.active_duration>*20";i=1;immune=1;hr=<caster.var.radius>;vr=<caster.var.yradius>;hp=true;hnp=true;yo=0;
+    ot=[ - skill{s=wardstone-border_tick;cd=0.25} @selflocation{cyaw=0;cpitch=0} ];
+    oh=[ - skill{s=wardstone-entry} ]} @selflocation
+
+wardstone-entry:
+  Skills:
+  - aura{auraname="<caster.uuid>-within";d="<caster.var.hitcd>*20+1";i="<caster.var.hitcd>*20";msc=true;
+    cod=true;cot=true;cocw=true;coq=true;
+    os=[
+    - vskill{s=<caster.var.onenter>}
+    ];
+    ot=[
+    - vskill{s=<caster.var.ontick>}
+    ];
+    oe=[
+    - vskill{s=<caster.var.onexit>}
+    ]}
+
+wardstone-border_tick:
+  Skills:
+  - polygon{op=[
+    - e:p{p=dust_color_transition;color1="#<caster.var.color1|7fffd>";color2="#<caster.var.color2|6C2DC7>";a=1;size=1;speed=0;hS=0.0;vS="<caster.var.yradius>/2";yo="<caster.var.yradius>"} 0.8 ]; 
+    points=4;scale="<caster.var.radius>*1.5";d=0;db=0.5;yaw=45;mpd=false}
+    
+ # audience=@EIR{r=12}
+ 
+wardstone-heal:
+  TargetConditions:
+  - isLiving{} true
+  - hasaura{aura=heal} false
+  Skills:
+  - skill{s=heal-apply;heal=20;duration=100;interval=1} @self
+  
+wardstone-reveal:
+  Cooldown: 1
+  TargetConditions:
+  - isLiving{} true
+  Skills:
+  - potion{t=GLOWING;d="<caster.var.duration>*20"}
+  - message{m="Revealed!"}
+  - removeaura{aura=heal} @targeted
+  - e:p{p=flash} 

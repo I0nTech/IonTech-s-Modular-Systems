@@ -2,7 +2,6 @@ Dependencies:
 - MM Premium (latest build)
 - Crucible (For items)
 - ModelEngine (For Model Modules, optional for all others.)
-  - If uneeded, delete modelled-slash-mechanic and mob_animation-mechanic. 
 - ProtocolLib (For Crucible triggers)
 - PlaceholderAPI
   - Expansions:

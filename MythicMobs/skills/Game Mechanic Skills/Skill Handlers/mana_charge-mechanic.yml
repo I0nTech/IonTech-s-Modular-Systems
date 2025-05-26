@@ -1,0 +1,101 @@
+mana_charge-test:
+  Skills:
+  - skill:mana_charge{mana=20}
+
+mana_charge-test2:
+  Skills:
+  - skill:mana_charge{mana=-20}
+
+
+mana_charge-init:
+ # Conditions:
+ # - varisset{var=mana} false
+  Skills:
+  - setvar{var=caster.mana_charge;val=0;type=FLOAT} @self ?!varisset{var=caster.mana_charge}
+  - setvar{var=caster.mana_charge_max;val=100;type=FLOAT} @self ?!varisset{var=caster.mana_charge_max} 
+  - setvar{var=caster.mana_charge_decay;val=<caster.var.mana_charge_max>*0.1/20;type=FLOAT} @self
+
+  - setvar{var=check_mana;val=<caster.var.mana_charge>+<skill.mana|0>+0.1;type=FLOAT} @self
+  - setvar{var=mana;val=<skill.mana|0>;type=FLOAT} @self
+
+# Mana Charge System
+# Parameters
+#   mana: Mana to add / remove (+20/-20)
+mana_charge:
+  Skills:
+  - skill{s=mana_charge-init}
+  - return ?!varinrange{var=check_mana;val=>0}
+  
+  - skill{s=mana_charge-evaluate}
+  - skill{s=mana_charge-message}
+
+mana_charge-spell:
+  Skills:
+  - skill{s=mana_charge-init}
+  - return ?!varinrange{var=check_mana;val=>0}
+  
+  - skill{s=mana_charge-evaluate}
+  - skill{s=mana_charge-spell_message}
+
+mana_charge-signature:
+  Skills:
+  - skill{s=mana_charge-init}
+  - return ?!varinrange{var=check_mana;val=>0}
+  
+  - skill{s=mana_charge-evaluate}
+  - skill{s=mana_charge-signature_message}
+
+
+mana_charge-evaluate:
+  Skills:
+  - setvar{var=mana;val=<skill.mana|0>;type=FLOAT} @self
+  - variableMath{var=caster.mana_charge;eq='clamp(x+<skill.mana|0>,0,<caster.var.mana_charge_max>)'}
+
+  - skill{s=mana_charge-none} @self ?!varinrange{var=check_mana;val=>0}
+  - setvar{var=reset_delay;val='clamp(<caster.var.mana_charge|0>/<caster.var.mana_charge_max|100>*5,3,5)*20';type=FLOAT}
+  - aura{name=mana_charged;d=<skill.var.reset_delay>;i=1;ow=true;desot=false;
+    bt=false;bartimercolor=BLUE;bartimerstyle=SOLID;
+    bartimertext="Mana Charged <caster.var.mana_charge>/<caster.var.mana_charge_max>";
+    oe=mana_charge-decay} @self ?!hasaura{auraname=<skill.id>-cd}
+
+mana_charge-message:
+  Skills:
+  - am{m='<placeholder.mana_symbol> <placeholder.mana_charge_change>'} @self
+
+mana_charge-spell_message:
+  Skills:
+  - am{m="<skill.var.name> <placeholder.spell_cooldown> <placeholder.mana_charge_change>"} @self
+
+mana_charge-signature_message:
+  Skills:
+  - am{m="<skill.var.name> <placeholder.cooldown_symbol> <caster.var.signature-cd>s<reset> <placeholder.mana_charge_change>"} @self
+
+
+#  - setvar{var=reset_delay_progress;val=<skill.var.aura-duration>/<skill.var.reset_delay>*100;type=INTEGER}
+#  - message{m=<skill.var.reset_delay_progress>} @self
+#<#7bffff>✵ %gradient_percent_#00b7ff_#8ddfff_<skill.var.reset_delay_progress>%✵
+#_fullbar:<#00FFFF>■■■■■■■■■■
+#%progress_bar_<caster.var.mana_charge>_c:&a▌_p:&e▌_r:&7▌_l:10_m:<caster.var.mana_charge_max>_fullbar:&aFull!%
+#■■■■■■■■■□
+mana_charge-decay:
+  Conditions:
+  - variableInRange{var=caster.mana_charge;val=>0} orelsecast mana_charge-none
+#  - hasAura{name=mana_charged} false
+  Skills:
+  - skill{s=[
+      - am{m='<placeholder.mana_symbol> <placeholder.mana_charge_current>';delay=1}
+      - variableMath{var=caster.mana_charge;eq=clamp(x-<caster.var.mana_charge_decay>,0,<caster.var.mana_charge_max>)}
+    ]} @self ?!hasAura{name=channelling}
+  - delay 1
+  - skill{s=mana_charge-decay} ?!hasAura{name=mana_charged} 
+    
+mana_charge-none:
+  Skills:
+  - am{m=''} @self
+  - removeaura{name=mana_charged}
+  - varunset{var=caster.mana_charge}
+  - varunset{var=caster.mana_charge_max}
+  - varunset{var=caster.mana_charge_decay}
+
+
+

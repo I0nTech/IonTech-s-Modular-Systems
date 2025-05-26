@@ -1,11 +1,7 @@
 channel-test_cast:
   Skills:
-  - skill:Channel{
-    name=Mana Blast;
-    id=mana_blast-exec;
-    damage=100;
-    warmup=5;
-    spellcd=3} @self
+  - skill:Channel{name=Mana Blast;id=mana_blast-exec;
+    damage=100;warmup=5;spellcd=3} @self
 
 Channel:
   Skills:
@@ -14,28 +10,29 @@ Channel:
 channel:
   Skills:
   - skill{s=spell-init} @self
-  - skill{s=stun-oncast} @self ?hasaura{name=stun}
-  - return ?hasaura{name=stun}
+  - skill{s=channel-init} @self
   - skill{s=spell-cooldown-oncd} @self ?hasaura{auraname="<skill.id>-cd"} 
   - skill{s=channel-exec;branch=true} @self ?!hasaura{auraname="<skill.id>-cd"}
 
 channel-init:
+  Conditions: 
+  - varisset{var=warmup} false
   Skills:
   - setvar{var=warmup;val="<skill.warmup|<skill.startup|1>>*20";type=FLOAT}
   - setvar{var=interrupt;val="<skill.interrupt|2>";type=FLOAT}
+
   - setvar{var=accdmg;val=0;type=FLOAT}
   
-  - setvar{var=onStart;val=<skill.onStart|<skill.os|channel-start_fx>>;type=STRING}
-  - setvar{var=onTick;val=<skill.onTick|<skill.ot|channel-tick_fx>>;type=STRING}
+  - setvar{var=onChannelStart;val=<skill.onChannelStart|<skill.os|channel-start_fx>>;type=STRING}
+  - setvar{var=onChannelTick;val=<skill.onChannelTick|<skill.ot|channel-tick_fx>>;type=STRING}
   - setvar{var=onInterrupt;val=<skill.onInterrupt|<skill.oi|channel-interrupt_fx>>;type=STRING}
   - setvar{var=onCast;val=<skill.onCast|<skill.oc|channel-cast_fx>>;type=STRING}
 
 channel-exec:
   Conditions:
-  - hasaura{name=channelling} false
+  - hasaura{name=channelling} castinstead channel-interrupt
+  - hasaura{name=stun} castinstead stun-oncast
   Skills:
-  - skill{s=channel-init} @self
-
   - onDamaged{name=channelling;d=<skill.var.warmup>;ma=true;
     bt=true;bartimercolor=BLUE;desot=false;
     bartimertext="Channelling <#ff00ff><skill.name> &e%math_1:_<skill.var.aura-duration>/20%s";
@@ -43,7 +40,7 @@ channel-exec:
     onHit=channel-hit_logic;
     onTick=channel-tick_logic;
     onEnd=channel-cast_logic} @self
-
+  
 channel-sfx:
   Skills:
   - sound{s=arcane.channel;pitch=1;volume=0.2} 
@@ -56,7 +53,7 @@ channel-sfx:
 channel-start_logic:
   Skills:
   - skill{s=channel-tick_logic} @self
-  - vskill{s=<skill.var.onStart>}
+  - vskill{s=<skill.var.onChannelStart>}
 
 channel-hit_logic:
   Conditions:
@@ -69,30 +66,26 @@ channel-hit_logic:
   Skills:
   - variableMath{var=accdmg;equation="x+<skill.var.damage-amount>"} 
   - skill{s=channel-interrupt} ?varInRange{var=accdmg;val=><skill.var.interrupt>} 
-  # - message{m="Accumulated damage <skill.var.accdmg>"} 
 
 channel-tick_logic:
   Conditions:
   - hasaura{name=stun} castinstead channel-interrupt
   Skills:
   - setvar{var=progress;val="(<skill.var.warmup>-<skill.var.aura-duration>)/<skill.var.warmup>";type=FLOAT} @self
-# - message{m=<skill.var.progress>} @self
-  - velocity{m=MULTIPLY;x=1;y=0;z=1} @self
-  - vskill{s=<skill.var.onTick>}
+  - velocity{m=MULTIPLY;x=0.5;y=0.2;z=0.5} @self
+  - vskill{s=<skill.var.onChannelTick>}
 
 channel-cast_logic:
   Skills:
   - skill{s=channel-tick_logic} @self
   - vskill{s=<skill.var.onCast>}
-  - skill:Spell
+  - skill:spell-cast
   
 channel-interrupt:
   Skills:
   - removeaura{aura=channelling} @self
   - am{m="&fChannelling Interrupted";delay=1} @self
   - vskill{s=<skill.var.onInterrupt>}
-
-# Default VFX
 
 channel-start_fx:
   Skills:
@@ -103,16 +96,12 @@ channel-tick_fx:
   - setvar{var=pitch;val="<skill.var.pitch|0>+12"} 
   - setvar{var=yaw;val="<skill.var.yaw|0>+12"}
   - setvar{var=radius;val="(1-<skill.var.progress>)*2+2";type=FLOAT}
-  
   - e:p{p=enchantment_table;a="1+2*(1-<skill.var.progress>)";speed=4;hs=0.3;ys=0.6;y=2} 
   - polygon{points=3;scale=<skill.var.radius>;db=0.5;mpd=false;
     pitch="<skill.var.pitch>";yaw="<skill.var.yaw>";
       oe=[ 
       - e:p{p=SOUL_FIRE_FLAME;fo=true;origin=@targetedlocation;directional=true;a=1;speed="<skill.var.radius>/10"} @selflocation{yo=1}
       ]} @selflocation{yo=1}
-
-#  - e:p{fo=true;directional=true;p=FLAME;a=1;speed=<random.float.0.01to0.06>} @targetedlocation{yo=0.1} 0.4
-#  - message{m="<skill.var.pitch> <skill.var.yaw> <skill.var.radius>"} @self 
 
 channel-cast_fx:
   Skills:

@@ -1,6 +1,6 @@
 gravity_slam-cast:
   Skills:
-  - skill{s=select_target;id=[
+  - skill:select_target{id=[
     - vskill{s=gravity_slam-exec} @targetedlocation
     ]} @self
 

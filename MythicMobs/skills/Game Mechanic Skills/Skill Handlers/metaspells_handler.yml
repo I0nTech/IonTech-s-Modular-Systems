@@ -1,0 +1,141 @@
+# For executing Metaspells, without triggering them. 
+# Doesn't actually interact with the main Metaspells system at all. 
+Metaspell:
+  Skills:
+  - skill:metaspell
+
+metaspell:
+  Conditions:
+  - offGCD
+  Skills:
+  # Initialize a crap ton of variables
+  - skill{s=spell_parameters-init} @self
+  - skill{s=spell-init} @self
+  - skill{s=spell_charges-init} @self
+  - skill{s=mana_charge-init;mana=<skill.var.mana_cost>} @self
+
+  - skill:metaspell-cast
+
+metaspell-cast:
+  Conditions:
+  - varinrange{var=check_mana;val=>0} orelsecast spell-not_enough_mana 
+  - hasaura{name=channelling} castinstead channel-interrupt
+  - hasaura{name=stun} castinstead stun-oncast
+  - (hasaura{name="<skill.var.id>-cd"} && varequals{var=charges;val=0}) castinstead spell-oncd
+  - (hasaura{name="<skill.var.id>-cd"} && varinrange{var=charges;val=>0}) castinstead spell_charges-oncd
+  - (varequals{var=caster.<skill.var.id>-charges;val=0} && varinrange{var=charges;val=>0}) castinstead spell_charges-nocharges
+  Skills:
+  - skill:mana_charge-evaluate{mana=<skill.var.mana_cost>} @self ?!hasaura{name="<skill.var.id>-cd"} 
+  - vskill{s=spell_channel} @self ?varinrange{var=warmup;val=>0}
+  - return ?varinrange{var=warmup;val=>0}
+  - vskill{s=spell-cast;branch=true} @self ?varequals{var=charges;val=0} 
+  - vskill{s=spell_charges-cast;branch=true} @self ?varinrange{var=charges;val=>0} 
+
+# Parameters
+# - o: The actual inline metaskill to append
+# - priority: Priority from 1 (LOWEST) to 6 (MONITOR) to use
+#   - 1: LOWEST
+#   - 2: LOW
+#   - 3: MEDIUM
+#   - 4: HIGH
+#   - 5: SPELL SELECT
+#   - 6: SPELL EXECUTION
+#   - 7: MONITOR
+
+metaspell_add:
+  Skills:
+  - setVar{name=caster.metaspell_<skill.priority|3>;type=STRING;value="<caster.var.metaspell_<skill.priority|3>| - log{m=Missing Metaspell <caster.name> <caster.uuid>}>
+    <skill.o>"} @self
+
+# Executes the skills in the metaspell in sequence. 
+metaspell_execute:
+  Conditions:
+  - stringEquals{value1=<skill.var.priority>;value2=7} castinstead metaspell_end
+  Skills:
+  - signal{s=onSpellCast}
+  - setVar{var=consume;value=<skill.consume|true>;type=STRING} @self
+  - setVar{var=priority;value=<skill.priority|0>} @self
+  - setVar{var=nextpriority;value=<skill.var.priority>+1} @self
+
+  # Recursion Loop. That's interesting. 
+  - setVar{var=metaspell;type=STRING;
+    value="[
+    <caster.var.metaspell_<skill.var.priority>|''>
+    - vskill{skill=metaspell_execute;priority=<skill.var.nextpriority>}
+    ]"} @self
+
+  - setVar{name=caster.metaspell_<skill.var.priority>;type=STRING;value=""} @self ?varequals{var=consume;val=true}
+  # - message{message=<skill.var.priority>} @self
+  - message{message=<skill.var.metaspell>} @self
+  - vskill{skill=<skill.var.metaspell>}
+
+metaspell_end:
+  Skills:
+  - variableUnset{var=priority}
+  - variableUnset{var=metaspell}
+
+
+
+
+# metaspell-test_1:
+#   Skills:
+#   - skill:metaspell-add{id=[ - message{m=0} @self ]}
+#   - skill:metaspell-add{id=[ - message{m=1} @self ]}
+#   - skill:metaspell-add{id=[ - message{m=2} @self ]}
+#   - skill:metaspell-add{id=[ - message{m=3} @self ]}
+#   - skill:metaspell-add{id=[ - message{m=4} @self ]}
+#   - skill:metaspell-add{id=[ 
+#     - message{m=5} @self 
+#     - message{m=6} @self 
+#     - message{m=7} @self 
+#     ]}
+#   - skill:metaspell-execute{delay=0}
+
+# #  - skill:metaspell-execute{delay=0}
+
+# metaspell-test_2:
+#   Skills:
+#   - skill:metaspell-add{id=mana_beam-exec}
+#   - skill:metaspell-add{id=mana_bolt-exec}
+#   - skill:metaspell-execute{delay=0}
+
+# metaspell-execute:
+#   # Executes all metaspells stacked in the Caster metaspell storage in LIFO sequence, before the spell itself is cast. 
+#   # Ex:
+#   # 1) 
+#   # - setvar{var=damage;val="<skill.var.damage|0>*1.5";type=FLOAT}
+#   # - setvar{var=warmup;val="<skill.var.warmup|0>+0.4";type=FLOAT}
+#   # 2)
+#   # - damage{a=<skill.var.damage|12>;pi=true...}  @ENO{r=12}
+#   # 3) 
+#   # - teleport @forward{f=12}
+#   #
+#   # Teleports you 12 blocks forward. 
+#   # Damages enemies in a 12 block range for 12 damage
+#   # Multiplies Spell damage by 1.5, and adds .4 seconds channel time
+#   Skills:
+#   - setvar{var=index;val=<caster.var.metaspell_queue-length|0>;type=INTEGER}
+#   - skill{s=metaspell-call;branch=true}
+
+# metaspell-call:
+#   Conditions:
+#   - variableInRange{var=index;val=>0}
+#   Skills:
+#   - message{m=<i><skill.var.index>/<caster.var.metaspell_queue-length> <caster.var.metaspell_queue-<skill.var.index>>} @self
+#   - vskill{s=<caster.var.metaspell_queue-<skill.var.index>>}
+#   - varUnset{var=<caster.var.metaspell_queue-<skill.var.index>>} @self
+#   - setVar{var=index;val=<skill.var.index>-1;type=INTEGER} @self 
+#   - delay 1
+#   - skill{s=metaspell-call;branch=true}
+#   - varUnset{var=caster.metaspell_queue-length} @self ?variableInRange{var=index;val=<1}
+
+# metaspell-add:
+#   # Adds a Metaspell to the end of the queue. 
+#   Skills:
+#   - setVar{var=caster.metaspell_queue-length;val=<caster.var.metaspell_queue-length|0>+1;type=INTEGER} @self 
+#   - setVar{var=caster.metaspell_queue-<caster.var.metaspell_queue-length>;val=<skill.o>;type=STRING} @self
+
+
+
+#   # - message{m=<caster.var.metaspell-length> <caster.var.metaspell-queue>} @self
+#   # - varUnset{var=caster.metaspell-queue} @self

@@ -1,0 +1,17 @@
+volley_protocol-cast:
+  Skills:
+   - skill:Metaspell{name=Volley Protocol;id=volley_protocol-exec;type=ARCANE;
+     consume=false;mana_cost=-10;spellcd=7} @self
+
+volley_protocol-exec:
+  Skills:
+  - skill:metaspell_add{priority=1;o='- vskill{s=volley_protocol-meta} @self'}
+
+volley_protocol-meta:
+  Skills:
+  - variableMath{var=warmup;equation='x*1.5'}
+  - variableMath{var=projectiles;equation='x+8'}
+  - message{m=debugger <skill.var.warmup> <skill.var.projectiles>} @self
+
+#  - variableMath{var=projectiles;equation='x+2'}
+#  - variableMath{var=size;equation='x+1'}

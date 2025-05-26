@@ -87,12 +87,12 @@ modelled_slash-start:
     - vfx{mid="<skill.var.model>";pid=<skill.var.pid>;v=false} ?varequals{var=increment;val=0}
     - VFXRot{rel=true;x=<skill.var.pitch>;y=<skill.var.yaw>;z=<skill.var.roll>}
     - VFXScale{x=<skill.var.scale>;y=1;z=<skill.var.scale>}
-    - vfxtint{c=<skill.color|FFFFFF>}
+    - vfxtint{c=<skill.color|#FFFFFF>}
     - VFXSetVis{v=true}
     ];
     ot=[
     - setvar{var=caster.iteration;val="<caster.var.iteration|1>+<skill.var.increment>"}
     - VFXChangeModel{mid="<skill.var.model>_<caster.var.iteration>";pid=<skill.var.pid>}
-    - vfxtint{c=<skill.color|FFFFFF>}
+    - vfxtint{c=<skill.color|#FFFFFF>}
     ];
     oe=[ - remove ]} @self

@@ -1,0 +1,58 @@
+#cooldown: '<gold>🕑<lore.ability1-cooldown>s'
+warn_symbol: '<reset><#C0C0C0>[<#B10000><bold>!<reset><#C0C0C0>]<reset><white>'
+
+cooldown_symbol: '<reset><#FFFF55>⌛ Cooldown'
+spell_cooldown: 
+  charge:
+    Conditions:
+    - varinrange{var=charges;val=>0} 
+    Value: '<placeholder.charge_count> <placeholder.cooldown_symbol> <caster.var.<skill.var.id>-cd>s'
+  Default: '<placeholder.cooldown_symbol> <caster.var.<skill.var.id>-cd>s<reset>'
+
+charge_count: 
+  Default: '<#C0C0C0>[&e<caster.var.<skill.var.id>-charges>/<caster.var.<skill.var.id>-maxcharges><#C0C0C0>]'
+
+mana_symbol: '<reset><#36eeee>✵'
+
+mana_charge_value: 
+  Default: '<#00FFFF>%math_0:_<caster.var.mana_charge>%<#C0C0C0>/<#00FFFF>%math_0:_<caster.var.mana_charge_max>%'
+
+mana_charge_change: 
+  charge_increase:
+    Conditions:
+    - varinrange{var=mana;val=>0}
+    Value: '<#0096d1>[<reset>%progress_bar_<caster.var.mana_charge>_c:<#00FFFF>■_p:<#444444>■_r:<#444444>■_l:10_m:<caster.var.mana_charge_max>_fullbar:<#00FFFF>Full Charge%<reset><#0096d1>] <#00FFFF>%math_0:_<caster.var.mana_charge>/<caster.var.mana_charge_max>*100%% <#66FF00>(+<skill.mana|0>)'
+  charge_decrease:
+    Conditions:
+    - varinrange{var=mana;val=<0}
+    Value: '<#0096d1>[<reset>%progress_bar_<caster.var.mana_charge>_c:<#00FFFF>■_p:<#444444>■_r:<#444444>■_l:10_m:<caster.var.mana_charge_max>_fullbar:<#00FFFF>Full Charge%<reset><#0096d1>] <#00FFFF>%math_0:_<caster.var.mana_charge>/<caster.var.mana_charge_max>*100%% <#ff1e00>(<skill.mana|0>)'
+  Default: ''
+
+mana_charge_change-oncast:
+  charge_increase:
+    Conditions:
+    - varinrange{var=mana_cost;val=>0}
+    Value: '<placeholder.mana_symbol> <placeholder.mana_charge_value> <#66FF00>(+%math_0:_<skill.var.mana_cost|0>%)'
+  charge_decrease:
+    Conditions:
+    - varinrange{var=mana_cost;val=<0}
+    Value: '<placeholder.mana_symbol> <placeholder.mana_charge_value> <#ff1e00>(%math_0:_<skill.var.mana_cost|0>%)'
+  Default: ''
+
+mana_charge_current:
+  Default: '<#0096d1>[<reset>%progress_bar_<caster.var.mana_charge>_c:<#00FFFF>■_p:<#444444>■_r:<#444444>■_l:10_m:<caster.var.mana_charge_max>_fullbar:<#00FFFF>Full Charge%<reset><#0096d1>] <#00FFFF>%math_0:_<caster.var.mana_charge>/<caster.var.mana_charge_max>*100%%'
+
+
+
+cooldown: '<gold>🕑'
+#trigger-jump: '<gold><bold>JUMP</bold> <dark_gray>»<gold>'
+line: '<dark_gray>☰☱☳☴☶☷☰☱☳☴☶☷☰☱☳'
+format-description: '<dark_gray><i>'
+format-ability-description: '<#C0C0C0>'
+swap: '<key:key.swapOffhand>'
+
+rarity:
+  - COMMON
+  - RARE
+  - LEGENDARY
+
