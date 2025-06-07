@@ -77,16 +77,19 @@ slash-start:
 
 slash-vfx_fire:
   Skills:
-  - projectile{fo=true;origin=@VariableLocation{var=originloc};ti=12;syo=0;sfo=0;
+  - projectile{fo=true;origin=@VariableLocation{var=originloc};ti=1;syo=0;sfo=0;    
     onEnd=slash-vfx_logic;
-    ham=false;v=64;mr=<skill.var.radius>;md=4;i=1;g=0;hR=0;vR=0;hnp=false;se=false;sb=false}
-
+    ham=true;v=<skill.var.velocity>;mr=<skill.var.hitradius>;md=4;i=1;g=0;hR=0;vR=0;hnp=false;se=false;sb=false}
+  
+  
 slash-hit_fire:
   Skills: 
   - projectile{fo=true;origin=@VariableLocation{var=originloc};ti=1;syo=0;sfo=0;    
     onHit=slash-hit_logic;drawHitbox=false;
     hitconditions=[ - isLiving true  ];
     ham=true;v=<skill.var.velocity>;mr=<skill.var.hitradius>;md=4;i=1;g=0;hR=<skill.var.hitboxsize>;vR=<skill.var.hitboxsize>;hnp=true;se=false;sb=true}
+  
+  
   #- vskill{s=[
   #   - raytraceto{fo=true;origin=@VariableLocation{var=originloc};md=12;rw=1;locationskill=slash-debug123;entityskill=slash-hit_logic}
   #  ]}

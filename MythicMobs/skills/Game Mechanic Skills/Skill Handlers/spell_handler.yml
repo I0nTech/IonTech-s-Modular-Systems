@@ -19,7 +19,8 @@ spell-init:
   # Channelling Parameters
   - setvar{var=warmup;val="<skill.warmup|<skill.startup|0>>*20";type=FLOAT}
   - setvar{var=interrupt;val="<skill.interrupt|2>";type=FLOAT}
-  
+  - setvar{var=accdmg;val=0;type=FLOAT}
+
   - setvar{var=onChannelStart;val=<skill.onChannelStart|<skill.os|channel-start_fx>>;type=STRING}
   - setvar{var=onChannelTick;val=<skill.onChannelTick|<skill.ot|channel-tick_fx>>;type=STRING}
   - setvar{var=onInterrupt;val=<skill.onInterrupt|<skill.oi|channel-interrupt_fx>>;type=STRING}
@@ -87,7 +88,7 @@ spell-not_enough_mana:
 spell-execute:
   Conditions:
   - varinrange{var=check_mana;val=>0} orelsecast spell-not_enough_mana 
-  - hasaura{name=channelling} castinstead channel-interrupt
+  - hasaura{name=channelling} castinstead spell-manual_interrupt
   - hasaura{name=stun} castinstead stun-oncast
   - (hasaura{name="<skill.var.id>-cd"} && varequals{var=charges;val=0}) castinstead spell-oncd
   - (hasaura{name="<skill.var.id>-cd"} && varinrange{var=charges;val=>0}) castinstead spell_charges-oncd
@@ -97,6 +98,11 @@ spell-execute:
   - skill:metaspell_add{priority=5;o='- vskill{s=spell_select}'} @self
   - skill:metaspell_execute
 
+spell-manual_interrupt:
+  Skills:
+  - sound{s=entity.illusioner.cast_spell;p=0.6;v=0.2;audience=self} @self
+  - setvar{var=caster.manual_interrupt;val=true;type=STRING;e=1} @self
+
 # spell_construct:
 #   Skills: 
 #   - skill:mana_charge-evaluate{mana=<skill.var.mana_cost>} @self ?!hasaura{name="<skill.var.id>-cd"} 
@@ -104,7 +110,6 @@ spell-execute:
 
 spell_select:
   Skills: 
-  - message{m="Warmup <skill.var.warmup>"} @self
   - skill:metaspell_add{priority=6;o='- vskill{s=spell_channel}'} @self ?varinrange{var=warmup;val=>0}
   - return ?varinrange{var=warmup;val=>0}
   - skill:metaspell_add{priority=6;o='- vskill{s=spell-cast;branch=true}'} @self ?varequals{var=charges;val=0} 

@@ -81,7 +81,13 @@ projectile_barrage-fire:
 
 projectile_scatter-test:
   Skills:
+  - setvar{var=points;value=<skill.points|<skill.var.projectiles|3>>}
+  - setvar{var=spread;value=<skill.spread|<skill.var.points>*2>;type=FLOAT}
+  - setvar{var=deviation;value="(1-<skill.accuracy|1>)";type=FLOAT}
+
+
   # Scatter Logic. Fires projectiles in a shotgun, all at once. 
+  # NOT DONE.
 
 
 # Piercing Logic

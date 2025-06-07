@@ -55,6 +55,7 @@ click_combo-normal:
   
 click_combo-quick:
   Skills:
+
   - setvar{var=caster.input_counter_max;val=2;type=INTEGER}
   - sendtitle{title="";subtitle="「」「」";d=200}
   
@@ -112,9 +113,8 @@ click_combo-executeskill:
   - skill{s=click_combo-input;click=+down} ?crouching ?varequals{var=type;val=QUICK}
  
   - sendtitle{title="";subtitle="<#65FE08><caster.var.display_input>";d=3;delay=1}
-  - message{m="<caster.var.input> <skill.<caster.var.input>> <skill.var.type>"} ?varequals{var=debug;val=true}
+ # - message{m="<caster.var.input> <skill.<caster.var.input>> <skill.var.type>"} @self
   - vskill{s=<skill.<caster.var.input>|click_combo-invalid>;branch=true;sync=false} @self
-  
   - variableUnset{var=caster.input_counter;delay=1}
   - variableUnset{var=caster.input_counter_max}
   - variableUnset{var=caster.input}

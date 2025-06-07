@@ -53,6 +53,7 @@ metaspell_execute:
   - stringEquals{value1=<skill.var.priority>;value2=7} castinstead metaspell_end
   Skills:
   - signal{s=onSpellCast}
+  - delay 0
   - setVar{var=consume;value=<skill.consume|true>;type=STRING} @self
   - setVar{var=priority;value=<skill.priority|0>} @self
   - setVar{var=nextpriority;value=<skill.var.priority>+1} @self
@@ -66,7 +67,7 @@ metaspell_execute:
 
   - setVar{name=caster.metaspell_<skill.var.priority>;type=STRING;value=""} @self ?varequals{var=consume;val=true}
   # - message{message=<skill.var.priority>} @self
-  - message{message=<skill.var.metaspell>} @self
+  # - message{message=<skill.var.metaspell>} @self
   - vskill{skill=<skill.var.metaspell>}
 
 metaspell_end:
