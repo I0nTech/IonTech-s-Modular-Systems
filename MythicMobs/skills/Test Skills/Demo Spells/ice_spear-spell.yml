@@ -1,0 +1,117 @@
+ice_spear-cast:
+  Skills:
+  - skill:Spell{id=ice_spear-exec;name=Ice Spear;type=ICE;
+    pierce=4;damage=12;mana_charge=12;spellcd=7}
+
+ice_spear-exec:
+  Skills:
+  - skill:setRandomID
+  - skill{s=ice_spear-summon} @forward{f=3;uel=true;yo=-0.2}
+  
+ice_spear-summon:
+  Skills:
+ # - setvarloc{var=start_loc;val=@targetedLocation}
+  - summon{t=generic_projectile_marker;os=false;sip=true;then=[
+    - sudoskill{s=[ - skill{s=ice_spear-init} @self ]} @targeted
+    ]}
+
+ice_spear-pickup:
+  Skills:
+  - aura{d=20;i=1;
+    ot=[
+    - pull{to=true;origin=@forward{f=2;uel=true;yo=-0.2};v=8} @trigger
+    - sudoskill{s=ice_spear-retarget} @trigger
+    ];
+    oe=[
+    - sudoskill{s=ice_spear-retarget} @trigger
+    - removeaura{aura=held;delay=2} @trigger
+    ]} @self
+
+ice_spear-retarget:
+  Conditions:
+  - hasaura{name=held}
+  Skills:
+  - setvarloc{var=start_loc;val=@targetedlocation} @forward{f=3;uel=true;parent=true}
+  - raytraceto{fo=true;origin=@variableLocation{var=start_loc};md=128;rw=1;tyo=-0.2;
+    locationskill=[
+    <#>- e:pl{fo=true;p=spark;a=1;db=0.5} @targetedLocation
+    - rotatetowards{yaw=true;pitch=true;y=360;p=360;uel=false} 
+    ]} @forward{f=32;uel=true;parent=true}
+
+ice_spear-init:
+  Skills:
+  - sudoskill{cat=true;s=ice_spear-pickup} @parent
+  - model{m=vfx_permafrost_lance;usm=true}
+  - brightness{p="";em=false;b=15;s=5}
+  - bodyclamp{player=false;rdelay=0;rduration=0;head=false}
+  - state{mid=vfx_permafrost_lance;s=idle;p=0}
+
+  - aura{name=held;d=200;i=1;
+    oe=ice_spear-throw} @self
+  
+ice_spear-throw:
+  Skills:
+  - sound{s=item.trident.throw;volume=0.7;pitch=0.6} @self
+  - sound{s=entity.allay.hurt;volume=0.6;pitch=0.6} @self
+  - sound{s=entity.wither.shoot;volume=0.25;pitch=1.5} @self
+
+  - setvarloc{var=originloc;v=@selfLocation}
+  - aura{name=throw;i=1;d=200;
+     os=[
+     - propel{v=12} @forward{f=12} 
+     ];
+     ot=[
+     - skill{s=ice_spear-impact}
+     - skill{s=ice_spear-tick}
+     ]} @self
+
+ice_spear-tick:
+  Skills:
+  - propel{v=3} @forward{f=12} 
+  - setvarloc{var=targetloc;v=@selflocation}
+ # - e:pl{fo=true;origin=@VariableLocation{var=originloc};p=SPARK;a=1} @VariableLocation{var=targetloc}
+  - skill{s=[
+    - e:p{p=dust_color_transition;color1=#71A6D1;color2=#D4F1F8;a=1;size=0.8}
+    - skill{origin=@VariableLocation{var=originloc};s=[
+      - totem{md=1;hr=0.5;vr=0.5;yo=-0.25;hnp=true;drawhitbox=false;
+        oh=ice_spear-hit_entity}
+      ]} @line{fo=true;db=0.25}
+    ]} @VariableLocation{var=targetloc}
+
+  - setvarloc{var=originloc;v=@VariableLocation{var=targetloc}}  
+
+ice_spear-hit_entity:
+  Skills:
+  - skill:spell_damage{immune=40;onSpellHit=ice_spear-damage} @targeted{parent=true}
+
+ice_spear-damage:
+  Skills:
+#  - message{m="<caster.name> <parent.name> TEST"} @server
+  - skill:spell_damage-default
+  - sudoskill{s=[ - skill{s=mana_charge-spell;mana=<skill.var.mana_charge>} @self ]} @parent
+  - vskill{s=frigid_lance-hit_sfx} 
+  - e:p{p=snowflake;speed=0.1;a=12;hs=0.4;vs=0.6;y=1}
+
+  - aura{name=drag;d=20;ma=true;
+    ot=[
+    - removeaura{aura=drag} ?!hasAura{name=throw}
+    - pull{to=true;origin=@forward{f=2};v=12} ?hasAura{name=throw}
+    ];
+    oe=[
+    - removeaura{aura=throw;delay=1}
+    - skill:freeze{duration=2}
+    - velocity{mode=SET;x=0;y=0;z=0}
+    ]} @targeted
+
+ice_spear-impact:
+  Conditions:
+  - (onGround || velocity{v=<2.7})
+  Skills:
+  - removeaura{name=throw}
+  - setai{ai=false}
+  - setgravity{g=false}
+  - e:p{p=spark;a=12;speed=2}
+  - delay 100
+  - remove @self
+
+

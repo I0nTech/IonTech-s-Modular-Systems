@@ -63,6 +63,8 @@ mana_charge-message:
   - am{m='<placeholder.mana_symbol> <placeholder.mana_charge_change>'} @self
 
 mana_charge-spell_message:
+  Conditions:
+  - (varequals{v=mana;val=0} && varisset{var=caster.<skill.var.id>-cd} false) false
   Skills:
   - am{m="<skill.var.name> <placeholder.spell_cooldown> <placeholder.mana_charge_change>"} @self
 

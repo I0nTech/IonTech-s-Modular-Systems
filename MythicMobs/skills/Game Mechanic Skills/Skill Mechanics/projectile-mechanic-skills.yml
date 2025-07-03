@@ -65,7 +65,7 @@ projectile_barrage-fire:
   - polygon{fromOrigin=true;origin=@forward{uel=true;f=1};points=1;scale=1.25;db=1;mpd=true;
     roll=<skill.var.roll|0>;
       oe=[ 
-      - e:p{p=end_rod;a=1}
+      <#>- e:p{p=end_rod;a=1}
       - setvarloc{var=originloc;v=@targetedlocation}
       ]} @forward{uel=true;f=15}
 

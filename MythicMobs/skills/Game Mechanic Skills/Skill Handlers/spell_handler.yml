@@ -9,7 +9,7 @@ spell-init:
   # Spell Casting Parameters
   - setvar{var=id;val=<skill.id|unset>;type=STRING}
   - setvar{var=type;val=<skill.type|<skill.category|Unknown>>;type=STRING}
-  - setvar{var=name;val=<skill.name|<skill.spell|Unknown>>;type=STRING}
+  - setvar{var=name;val=<skill.name|<skill.spell|Unknown>>;type=STRING} 
   - setvar{var=spell_cooldown;val=<skill.spellcooldown|<skill.spell_cooldown|<skill.spellcd|1>>>*20;type=FLOAT}
   - setvar{var=displaycd;val=<skill.displaycd|<skill.showcd|true>>;type=STRING}
 
@@ -23,7 +23,7 @@ spell-init:
 
   - setvar{var=onChannelStart;val=<skill.onChannelStart|<skill.os|channel-start_fx>>;type=STRING}
   - setvar{var=onChannelTick;val=<skill.onChannelTick|<skill.ot|channel-tick_fx>>;type=STRING}
-  - setvar{var=onInterrupt;val=<skill.onInterrupt|<skill.oi|channel-interrupt_fx>>;type=STRING}
+  - setvar{var=onInterrupt;val=<skill.onInterrupt|<skill.oi|channel-interrupt-default>>;type=STRING}
   - setvar{var=onCast;val=<skill.onCast|<skill.oc|channel-cast_fx>>;type=STRING}
 
 spell_parameters-init:
@@ -101,7 +101,7 @@ spell-execute:
 spell-manual_interrupt:
   Skills:
   - sound{s=entity.illusioner.cast_spell;p=0.6;v=0.2;audience=self} @self
-  - setvar{var=caster.manual_interrupt;val=true;type=STRING;e=1} @self
+  - setvar{var=caster.manual_interrupt;val=true;type=STRING;e=3} @self
 
 # spell_construct:
 #   Skills: 

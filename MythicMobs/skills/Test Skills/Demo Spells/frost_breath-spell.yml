@@ -1,0 +1,43 @@
+frost_breath-cast:
+  Skills:
+  - skill:Spell{id=frost_breath;name=Frost Breath;type=ICE;
+    damage=0.2;spellcd=6;mana_charge=0.3;pierce=3;warmup=3;
+    onChannelTick=frost_breath-exec;
+    onInterrupt=[
+    - vskill{s=channel-interrupt_fx}
+    - vskill{s=spell-cooldown}  
+    ]} @self
+
+frost_breath-exec:
+  Skills:
+  - skill{s=frost_breath-fire;origin=@forward{uel=true;f=0.5;yo=-0.2};branch=true;repeat="<skill.var.projectiles|1>-1";repeati=0} @forward{uel=true;yo=-0.2;f=12}
+
+  # - skill{repeat=32;repeati=1;branch=true;s=[
+  #   - skill{s=frost_breath-fire;origin=@forward{uel=true;f=1;yo=-0.2}} @forward{uel=true;yo=-0.2;f=12}
+  #   ]} @self
+
+  #- skill:projectile_scatter{origin=@forward{uel=true;f=1;yo=-0.2};
+  #  id=frost_breath-fire} @forward{yo=-0.2;f=12;uel=true}
+
+frost_breath-fire:
+  Skills:
+  - projectile{fo=true;ti=3;syo=0;sfo=0;hnp=true;se=false;ham=true;
+    velocity='16*<skill.var.velocity|1>';i=1;g=0.1;
+    maxrange='14*<skill.var.range|1>';
+    hradius='0.2*<skill.var.size|1>';vr='0.2*<skill.var.size|1>';drawhitbox=false;
+    onStart=frost_breath-start;
+    onHit=frost_breath-hit_entity} @targetedlocation{xo=<random.float.-1to1>;yo=<random.float.-1to1>;zo=<random.float.-1to1>}
+
+#    onTick=frost_breath-tick;
+
+frost_breath-start:
+  Skills:
+  - e:p{fo=true;p=snowflake;a=1;directional=true;speed="<random.float.0.8to1.2>*<skill.var.velocity|1>"} @projectileforward{f=16} 
+#  - e:p{fo=true;p=flame;a=1;directional=true;speed="<skill.velocity|16>/16*<random.float.0.8to1.2>"} @projectileforward{f=16} 0.8
+
+frost_breath-hit_entity:
+  Skills:
+  - skill:spell_damage{immune=3}
+  - skill{s=mana_charge-spell;mana=<skill.var.mana_charge>}
+  - throw{fo=true;origin=@projectileforward{f=-3};v=2;vy=0}
+  - freeze{t=10}

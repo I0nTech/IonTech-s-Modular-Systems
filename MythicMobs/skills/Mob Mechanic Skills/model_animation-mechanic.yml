@@ -42,12 +42,14 @@ model_animation-exec:
 
 model_animation-start:
   Conditions:
-  - (hasAuraType{type="anim-<skill.var.priority>"} false || varequals{var=overwrite;val=true})
+  #- (hasAuraType{type="anim-<skill.var.priority>"} false || varequals{var=overwrite;val=true})
+  - (varisset{var=caster.anim_<skill.var.priority>} false || varequals{var=overwrite;val=true})
   Skills:  
   - aura{name="state-<skill.var.state>";type="anim-<skill.var.priority>";d=<skill.var.duration>;i=1;ow=false;
     desot=true;cot=false;cod=true;
     os=[ 
     - skill{s=model_animation-debug}
+    - setvar{var=caster.anim_<skill.var.priority>;val=1;type=INTEGER}
     - state{mid=<skill.var.model_id>;s=<skill.var.state>;l=<skill.var.loop>;priority=<skill.var.priority>;speed=<skill.var.speed>;ow=true;li=<skill.var.lerpin>;lo=<skill.var.lerpout>}
     - vskill{s=<skill.var.onStart>}
     ];
@@ -58,6 +60,7 @@ model_animation-start:
     oe=[ 
     <#>- state{mid=<skill.var.model_id>;remove=true;s=<skill.var.state>;priority=<skill.var.priority>;li=<skill.var.lerpin>;lo=<skill.var.lerpout>}
     - message{m="animation finished"} @PIR{r=100} ?varequals{var=caster.debug;value="true"}
+    - varUnset{var=caster.anim_<skill.var.priority>}
     - vskill{s=<skill.var.onEnd>;overwrite=true}
     ]} @self
     

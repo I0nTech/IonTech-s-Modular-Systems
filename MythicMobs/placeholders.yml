@@ -3,6 +3,10 @@ warn_symbol: '<reset><#C0C0C0>[<#B10000><bold>!<reset><#C0C0C0>]<reset><white>'
 
 cooldown_symbol: '<reset><#FFFF55>⌛ Cooldown'
 spell_cooldown: 
+  set:
+    Conditions:
+    - varisset{var=caster.<skill.var.id>-cd} false
+    Value: ''
   charge:
     Conditions:
     - varinrange{var=charges;val=>0} 
@@ -44,15 +48,15 @@ mana_charge_current:
 
 
 
-cooldown: '<gold>🕑'
-#trigger-jump: '<gold><bold>JUMP</bold> <dark_gray>»<gold>'
-line: '<dark_gray>☰☱☳☴☶☷☰☱☳☴☶☷☰☱☳'
-format-description: '<dark_gray><i>'
-format-ability-description: '<#C0C0C0>'
-swap: '<key:key.swapOffhand>'
+# cooldown: '<gold>🕑'
+# #trigger-jump: '<gold><bold>JUMP</bold> <dark_gray>»<gold>'
+# line: '<dark_gray>☰☱☳☴☶☷☰☱☳☴☶☷☰☱☳'
+# format-description: '<dark_gray><i>'
+# format-ability-description: '<#C0C0C0>'
+# swap: '<key:key.swapOffhand>'
 
-rarity:
-  - COMMON
-  - RARE
-  - LEGENDARY
+# rarity:
+#   - COMMON
+#   - RARE
+#   - LEGENDARY
 

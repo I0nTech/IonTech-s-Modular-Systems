@@ -6,12 +6,12 @@ flame_flicker-cast:
     
 flame_flicker-exec:
   Skills:
-  - skill:setRandomID
   - skill:projectile_spread{origin=@forward{uel=true;f=1;yo=-0.2};
     id=flame_flicker-fire} @forward{yo=-0.2;f=12;uel=true}
 
 flame_flicker-fire:
   Skills:
+  - skill:setRandomID
   - setvarloc{var=originloc;v=@origin}
   - projectile{fo=true;ti=3;syo=0;sfo=0;hnp=true;se=false;ham=true;
     velocity='64*<skill.var.velocity|1>';i=1;g=0;

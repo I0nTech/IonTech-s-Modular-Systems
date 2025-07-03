@@ -3,18 +3,18 @@ burning_blast-cast:
   - skill:Spell{id=burning_blast;name=Burning Blast;type=FIRE;
       onChannelStart=burning_blast-exec;
       damage=10;mana_charge=8;
-      spellcd=3;warmup=0.6}
+      spellcd=3;warmup=0.6} @self
 
 # Form and unleash a burning ball of magma. Upon impact, damages and ignites all targets in a small radius.
 
 burning_blast-exec:
   Skills:
-  - skill:setRandomID
   - skill:projectile_barrage{origin=@forward{uel=true;f=1;yo=-0.2};
     id=burning_blast-fire} @forward{yo=-0.2;f=12;uel=true}
 
 burning_blast-fire:
   Skills:
+  - skill:setRandomID
   - setvarloc{var=originloc;v=@origin}
   - setvar{var=fired;val=0}
   - projectile{fo=true;ti=3;syo=0;sfo=0;hnp=true;se=true;ham=true;

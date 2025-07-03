@@ -22,7 +22,7 @@ channel-init:
   - setvar{var=interrupt;val="<skill.interrupt|2>";type=FLOAT}
 
   - setvar{var=accdmg;val=0;type=FLOAT}
-  - setvar{var=interrupted;val=false;type=STRING}
+#  - setvar{var=interrupted;val=false;type=STRING}
 
   - setvar{var=onChannelStart;val=<skill.onChannelStart|<skill.os|channel-start_fx>>;type=STRING}
   - setvar{var=onChannelTick;val=<skill.onChannelTick|<skill.ot|channel-tick_fx>>;type=STRING}
@@ -35,8 +35,8 @@ channel-exec:
   - hasaura{name=stun} castinstead stun-oncast
   Skills:
   - onDamaged{name=channelling;d=<skill.var.warmup>;ma=true;
-    bt=true;bartimercolor=BLUE;desot=false;
-    bartimertext="Channelling <#ff00ff><skill.name> &e%math_1:_<skill.var.aura-duration>/20%s";
+    bt=true;bartimercolor=BLUE;desot=false;i=1;
+    bartimertext="Channelling <#ff00ff><skill.name> &e%math_1:_<skill.var.aura-duration|0>/20%s";
     onStart=channel-start_logic;
     onHit=channel-hit_logic;
     onTick=channel-tick_logic;
@@ -55,10 +55,11 @@ channel-hit_logic:
     - damagecause{cause=HOT_FLOOR} false
     - damagecause{cause=POISON} false
     - damagecause{cause=WITHER} false
+    - damagecause{cause=FALL} false
   Skills:
   - variableMath{var=accdmg;equation="x+<skill.var.damage-amount>"} 
   - skill{s=channel-interrupt} ?varInRange{var=accdmg;val=><skill.var.interrupt>} 
-  - message{m=<skill.var.accdmg>} @self 
+  #- message{m=<skill.var.accdmg>} @self 
 
 channel-tick_logic:
   Conditions:
@@ -71,7 +72,7 @@ channel-tick_logic:
 
 channel-cast_logic:
   Skills:
-  - skill{s=channel-tick_logic} @self
+#  - skill{s=channel-tick_logic} @self
   - vskill{s=<skill.var.onCast>}
   - skill:spell-cast
 
@@ -81,7 +82,6 @@ channel-manual_interrupt:
 
   - removeaura{aura=channelling} @self
   - m{m="&fChannelling Ended";delay=1} @self
-  - setvar{var=manual_interrupted;val=true;type=STRING} @self
   - vskill{s=<skill.var.onInterrupt>}
 
 channel-interrupt:
@@ -91,12 +91,12 @@ channel-interrupt:
 
   - removeaura{aura=channelling} @self
   - m{m="&fChannelling Interrupted";delay=1} @self
-  - setvar{var=interrupted;val=true;type=STRING} @self
+  - setvar{var=caster.interrupt;val=true;type=STRING;e=2} @self
   - vskill{s=<skill.var.onInterrupt>}
 
 channel-interrupt-default:
   Skills:
-  - skill{s=spell-cooldown}
+  - vskill{s=spell-cooldown}
 
 channel-start_fx:
   Skills:
