@@ -9,8 +9,6 @@ Likely a bit of both. This pack contains "modules" that act as which take in inp
  Very little documentation is provided, with some comments. Working examples and applications are provided. 
  Primer to advanced MythicMobs usage. Welcome to Wonderland. 
 
-Includes:
-
 ## Input Handlers
 
   ### Weapon Movesets 
