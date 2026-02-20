@@ -12,7 +12,8 @@ Disclaimers:
 
 Includes:
 
-Input Handlers:
+##Input Handlers
+
   Weapon Movesets 
   - Create flowing attack comboes that integrate perfectly into vanilla
   - Can read vanilla hit types and perform the associated skill bound
@@ -32,7 +33,8 @@ Input Handlers:
   - Component skill to Weapon Movesets.
   - Checks what kind of vanilla hit you have performed, e.g. CRIT, SPRINT, WEAK, etc
 
-Skill Handlers
+##Skill Handlers
+
   Spell Casting Handler 
   - The core of the Modular Skills system. Most logic in this pack integrates directly into this system
   - Handles Spell Casting, Cooldowns, Spell Charges, Casting VFX, Stats / Damage handling and more
@@ -67,7 +69,8 @@ Skill Handlers
 
   + Some more things that aren't really used by me, such as Summon handling and Custom Mana.
 
-Skill Mechanics
+##Skill Mechanics
+
   Advanced Slashes
   - Handler for creating advanced slash effects
   - Includes option for VFX configuration such as Tapering ends
