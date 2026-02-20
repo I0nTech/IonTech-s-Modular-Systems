@@ -1,0 +1,270 @@
+# Advanced Slash Test Cases
+advanced_slash_test:
+  Skills:
+  - skill:Spell{id=advanced_slash_test-exec;name=Advanced Slash 1;
+    spellcd=2;damage=20} @self
+
+advanced_slash_test-exec:
+  Skills:
+  - setvar{var=random_roll;val=<random.-4to4>*20;type=INTEGER}
+  - skill:Advanced_Slash{origin=@SelfEyeLocation{yo=-0.25};
+    arc=120;duration=8;twoside=false;roll=0;instant=true;
+    vfx_points=24;hitbox_points=12;radius=5;width=1;
+    onHit=[
+    - vskill{s=damage-ability;immune=20}
+    ]} @forward{f=12;uel=true;yo=-0.25}
+
+advanced_slash_test2:
+  Skills:
+  - skill:Spell{id=advanced_slash_test2-exec;name=Advanced Slash 2;
+    spellcd=2;damage=20} @self
+
+advanced_slash_test2-exec:
+  Skills:
+  - skill:Advanced_Slash{origin=@SelfEyeLocation{yo=-0.25};
+    arc=360;duration=8;twoside=false;roll=0;
+    vfx_points=24;hitbox_points=128;radius=12;width=1;
+    onHit=[
+    - vskill{s=damage-ability;immune=20}
+    ]} @forward{f=12;uel=true;yo=-0.25}
+
+# Advanced Slash Aliases
+
+Advanced_Slash:
+  Skill: advanced_slash-exec
+
+advanced_slash:
+  Skill: advanced_slash-exec
+
+Slash:
+  Skill: advanced_slash-exec
+
+slash:
+  Skill: advanced_slash-exec
+
+# Logic
+
+advanced_slash-exec:
+  Skills:
+  - skill{s=advanced_slash-start;branch=true}
+
+advanced_slash-init:
+  Skills:
+  - setvar{var=arc;val=<skill.arc|180>}
+  - setvar{var=duration;val=<skill.duration|0>}
+  - setvar{var=radius;val=<skill.radius|3>;type=FLOAT}
+  - setvar{var=points;val=<skill.points|32>}
+
+  - setvar{var=yaw;val=<skill.yaw|0>}
+  - setvar{var=pitch;val=<skill.pitch|0>}
+  - setvar{var=roll;val=<skill.roll|0>}
+
+  - setvar{var=width;val=<skill.width|1>;type=FLOAT}
+  - setvar{var=basewidth;val=<skill.basewidth|1/10>;type=FLOAT}
+
+  - setvar{var=vfx_points;val=<skill.vfx_points|<skill.var.points>>;type=INTEGER}
+  - setvar{var=hitbox_points;val=<skill.hitbox_points|<skill.var.points>>;type=INTEGER}
+
+  - setvar{var=show_vfx;val=<skill.show_vfx|true>;type=STRING}
+  - setvar{var=hitboxsize;val="<skill.hitboxsize|1/5>";type=FLOAT}
+
+  - setvar{var=instant;val="<skill.instant|false>";type=STRING}
+  - setvar{var=twoside;val="<skill.twoside|true>";type=STRING}
+  - setvar{var=roll;val="<random.0to1>*180+<skill.var.roll>"} ?variableequals{var=twoside;val=true}
+
+
+  - setvar{var=hitradius;val="<skill.var.radius>-<skill.var.hitboxsize>*2";type=FLOAT}
+  - setvar{var=velocity;val="100";type=INTEGER}
+  - setvar{var=currentwidth;val="<skill.var.basewidth>";type=FLOAT}
+  - setvar{var=iteration;val="0";type=INTEGER}
+
+  - setvarloc{var=originloc;v=@origin}
+  - setvar{var=originloc_vec;val=<skill.var.originloc.coords>;t=VECTOR}
+
+  - skill:setRandomID ?comparevalue{v1=<skill.setid|true>;op===;v2=true}
+
+  # - setvar{var=sharpness;val="0.5*%player_item_in_hand_level_SHARPNESS%+0.5";type=FLOAT} @self ?hasenchantment{e=DAMAGE_ALL;l=>0}
+  # - setvar{var=damage;val="<skill.damage|<caster.damage>>+<skill.var.sharpness|0>";type=FLOAT} @self
+  # - setvar{var=kb;val="<skill.kb|7>";type=FLOAT}
+  # - setvar{var=kby;val="<skill.kby|4>";type=FLOAT}
+  # - setvar{var=scalekb;val="<skill.scalekb|true>";type=STRING}
+  # - setvar{var=custom;val=<skill.custom|<skill.usecustom|<skill.denykbonhit|false>>>;type=BOOLEAN}
+ # - setvar{var=triggerskills;val="<skill.triggerskills|<skill.ts|true>>>";type=STRING}
+
+advanced_slash-start:
+  Skills:
+  - skill{s=advanced_slash-init} @self
+  - skill{s=advanced_slash-hit_entity;delay=1} @trigger
+
+#  - message{m="<skill.var.radius> <skill.var.hitboxsize> <skill.var.hitradius>"} @self
+  # VFX
+  - slash{fromorigin=true;a=<skill.var.arc>;w=<skill.var.radius>;h=<skill.var.radius>;p=<skill.var.vfx_points>;
+    yaw=<skill.var.yaw>;pitch=<skill.var.pitch>;roll=<skill.var.roll>;duration=<skill.var.duration>;
+    mpd=false;dtt=true;fo=0;yo=0;
+    oP=advanced_slash-point} ?varequals{var=show_vfx;val=true}
+
+  # Hitboxes
+  - return ?variableEquals{var=hitbox_points;val=0}
+
+  - slash{fromorigin=true;a=<skill.var.arc>;w=<skill.var.hitradius>;h=<skill.var.hitradius>;p=<skill.var.hitbox_points>;
+    yaw=<skill.var.yaw>;pitch=<skill.var.pitch>;roll=<skill.var.roll>;duration=0;
+    mpd=false;dtt=true;fo=0;yo=0;
+    oP=advanced_slash-hitbox} ?varequals{var=instant;val=true}
+   
+  - slash{fromorigin=true;a=<skill.var.arc>;w=<skill.var.hitradius>;h=<skill.var.hitradius>;p=<skill.var.hitbox_points>;
+    yaw=<skill.var.yaw>;pitch=<skill.var.pitch>;roll=<skill.var.roll>;duration=<skill.var.duration>;
+    mpd=false;dtt=true;fo=0;yo=0;
+    oP=advanced_slash-hitbox} ?varequals{var=instant;val=false}
+
+advanced_slash-scale_taper:
+  Skills:
+  - setvar{var=scalar;val=-<skill.var.currentwidth.mul.<skill.scalar|1>>,-<skill.var.currentwidth.mul.<skill.scalar|1>>,-<skill.var.currentwidth.mul.<skill.scalar|1>>;type=VECTOR}
+  - setvar{var=scaled_vec;val=<skill.var.slash_vec.mul.<skill.var.scalar>>;type=VECTOR}
+  - setvarloc{var=<skill.vec|taper_origin>;val=@targetedlocation{xo=<skill.var.scaled_vec.x>;yo=<skill.var.scaled_vec.y>;zo=<skill.var.scaled_vec.z>}}
+
+advanced_slash-point:
+  Skills:
+  - setvarloc{var=start_loc;val=@targetedlocation}
+  - setvarloc{var=end_loc;val=@variableLocation{var=start_loc}} ?!varisset{var=end_loc}
+
+  # - e:pl{fo=true;origin=@variableLocation{var=end_loc};p=spark;a=1;db=0.1} @variableLocation{var=start_loc}
+  - skill{origin=@variableLocation{var=end_loc};
+    s=[
+    - setvar{var=vfx_counter;val=<skill.var.vfx_counter|0>+1;type=INTEGER}
+    - setvar{var=currentwidth;val="<skill.var.vfx_counter>*((<skill.var.width>-<skill.var.basewidth>)/<skill.var.vfx_points>)";type=FLOAT}
+    - foreach{s=advanced_slash-vfx_logic} @line{fo=true;r=0.1}  
+    ]} @variableLocation{var=start_loc}
+
+  - setvarloc{var=end_loc;val=@variableLocation{var=start_loc}}
+
+  # - vskill{origin=@variableLocation{var=taper_origin};
+  #   s=<skill.vfx|<skill.onPoint|<skill.op|advanced_slash-default_vfx>>>} @targetedlocation
+
+advanced_slash-vfx_logic:
+  Skills:
+  - skill:get_direction_vector{origin=@VariableLocation{var=originloc};vec=slash} @targetedlocation
+  - skill{s=advanced_slash-scale_taper;scalar=1;vec=taper_origin}
+  - vskill{origin=@variableLocation{var=taper_origin};s=<skill.vfx|<skill.onPoint|<skill.op|advanced_slash-default_vfx>>>}
+
+advanced_slash-default_vfx:
+  Skills:
+  - e:p{p=spark;a=1}
+  # - e:pl{fo=true;origin=@variableLocation{var=taper_origin};p=spark;a=1;db=0.3}
+  # - foreach{skill=[ - e:p{p=reddust;a=1;size=<skill.var.currentwidth.add.0.5>} 0.5 ]} @line{r=0.1;fo=true}
+  - e:p{fo=true;origin=@variableLocation{var=taper_origin};p=end_rod;a=1}
+  - skill{s=advanced_slash-scale_taper;scalar=0.5;vec=taper1}
+
+  - skill{s=advanced_slash-scale_taper;scalar=2;vec=taper2}
+
+  - e:p{fo=true;origin=@variableLocation{var=taper2};p=end_rod;a=1;speed=0;directional=true} @variableLocation{var=taper_origin}
+  - e:p{fo=true;origin=@variableLocation{var=taper1};p=end_rod;a=1;speed=0;directional=true} @variableLocation{var=taper_origin}
+
+  # - skill{s=advanced_slash-scale_taper;scalar=0.5;vec=taper2}
+  # - e:pl{fo=true;p=spark;a=1;db=0.2;origin=@origin} @variableLocation{var=taper2}
+  # - e:pl{fo=true;p=reddust;a=1;db=0.2;origin=@variableLocation{var=taper_origin}} @variableLocation{var=taper2}
+
+advanced_slash-hitbox:
+  Skills: 
+  - skill{fo=true;origin=@VariableLocation{var=originloc};
+    s=[
+    - skill{s=advanced_slash-hitbox_point} @line{fo=true;radius=0.9}
+    ]} @targetedLocation
+
+advanced_slash-hitbox_point:
+  Skills: 
+  - totem{fo=true;origin=@VariableLocation{var=originloc};syo=0;sfo=0;yo=0;    
+    drawHitbox=false;ham=false;md=1;charges=1;fafc=true;
+    hR=<skill.var.hitboxsize>;vR=<skill.var.hitboxsize>;hnp=true;se=false;sb=false;
+    onHit=advanced_slash-hit_entity}
+
+  # - skill{fo=true;origin=@VariableLocation{var=originloc};
+  #   s=[
+  #   - skill{s=advanced_slash-hit_entity} @livingEntitiesInLine{radius=1}
+  #   ]} @targetedLocation
+
+  # - raytraceTo{fo=true;origin=@VariableLocation{var=originloc};md=4;ignorepassableblocks=true;
+  #   locationskill=[
+  #   - e:pl{fo=true;@VariableLocation{var=originloc};p=spark;a=1}
+  #   ]}
+  # - projectile{fo=true;origin=@VariableLocation{var=originloc};ti=4;syo=0;sfo=0;    
+  #   drawHitbox=true;ham=false;v=60;mr=<skill.var.hitradius>;md=1;i=1;g=0;
+  #   hR=<skill.var.hitboxsize>;vR=<skill.var.hitboxsize>;hnp=true;se=true;sb=true;c=[ - isLiving true  ];
+  #   onHit=advanced_slash-hit_entity}
+
+advanced_slash-hit_entity:
+  TargetConditions:
+  - isliving true
+  - targetInLineOfSight true
+  Skills: 
+  - setvar{var=slash_hit;val=true;t=BOOLEAN} @targeted{c=[ - (hasaura{name=slash_impact} false && hasaura{name=slash_display_hit} false) ]}
+  - aura{name=slash_impact;ma=true;d=3} @targeted
+  - aura{name=slash_display_hit;ma=true;d=1;delay=2} @targeted
+  - vskill{s=<skill.onHit|<skill.hit|[]>>}
+
+
+
+#     onTick=[ - e:p{p=spark;a=1} ];       <#>- vskill{s=<skill.onEnd|<skill.end|[]>>} ?varisset{var=slash_hit}
+
+
+
+#- projectile{fo=true;origin=@VariableLocation{var=originloc};ti=1;syo=0;sfo=0;    
+#    ham=true;v=<skill.var.velocity>;mr=<skill.var.hitradius>;md=4;i=1;g=0;hR=0;vR=0;hnp=false;se=false;sb=false;
+#    onEnd=slash-vfx_logic}
+
+# test-radial_projectiles:
+#   Skills:
+#   # - skill:projectile_spread{origin=@forward{f=0;uel=true};arc=360;points=20;radius=5;
+#   #   id=[
+#   # - vskill{s=test-radial_projectiles-exec;origin=@forward{f=3}} @forward{f=12}
+#   # - vskill{s=test-radial_projectiles-exec;origin=@forward{f=-3}} @forward{f=-12}
+#   - setvarloc{var=projectile_origin;val=@selflocation}
+#   - setvar{var=rot_degrees;val=toradian(20);type=FLOAT}
+#   - message{m=Radians <skill.var.rot_degrees>} @self
+#   - slash{fromorigin=true;origin=@selflocation;p=32;scale=3;a=180;w=3;h=3;
+#     mpd=false;dtt=true;fo=0;yo=0;d=4;
+#     op=[
+#     - setvarloc{var=projectile_target;val=@targetedlocation}
+#     - e:p{p=reddust;a=1} @targetedlocation
+#     - e:pl{fromorigin=true;origin=@variableLocation{var=projectile_origin};p=spark;a=1;md=12} 
+#     - vskill{s=get_direction_vector;origin=@variableLocation{var=projectile_origin};vec=direction} @variableLocation{var=projectile_target}
+    
+#     - setvar{var=mod_dir_vec;val=<skill.var.direction_vec.mul.20,20,20>;type=VECTOR} 
+#     - setvarloc{var=new_target;val=@variableLocation{var=projectile_target;x=<skill.var.mod_dir_vec.x>;y=<skill.var.mod_dir_vec.y>;z=<skill.var.mod_dir_vec.z>}}
+
+#     <#>- setvar{var=mod_dir_vec;val=<skill.var.direction_vec.rotate.y.0.7853982>;type=VECTOR} 
+#     - message{m="<skill.var.direction_vec>"} @self
+#     <#> - setvarloc{var=rot_loc;val=@variableLocation{var=projectile_target;x=<skill.var.mod_dir_vec.x>;y=<skill.var.mod_dir_vec.y>;z=<skill.var.mod_dir_vec.z>}}
+#     <#>- e:pl{fromorigin=true;origin=@variableLocation{var=projectile_target};p=end_rod;a=1;md=12} @variableLocation{var=new_target}
+#     - vskill{s=test-radial_projectiles-point;origin=@variableLocation{var=projectile_target};branch=true} @variableLocation{var=new_target}
+#     ]} @forward{f=12}
+
+# test-radial_projectiles-point:
+#   Skills:
+
+#   - skill{s=test-radial_projectiles-exec}
+#   # - setvarloc{var=someorigin;val=@origin}
+#   # - polygon{fromorigin=true;points=2;mpd=false;dtt=true;scale=12;
+#   #   oe=[
+#   #   - skill{s=test-radial_projectiles-exec;origin=@variableLocation{var=someorigin}}
+#   #   ]} @targetedlocation
+
+# # Note: vector rotate does not work. 
+
+# #    - e:pl{fo=true;p=spark;a=1;db=0.5}  
+
+#   # - skill:vfx-particle_shockwave{origin=@forward{f=1;uel=true};debug=true;points=60;length=1;radius=3;particle=cloud} @forward{f=12;uel=true}
+
+#     # ]} @forward{f=20;uel=true}
+
+# test-radial_projectiles-exec:
+#   Skills:
+#   - projectile{fo=true;ti=3;syo=0;sfo=0;ho=-66;
+#     ham=true;v=40;mr=10;i=1;g=0;hR=0.6;vR=0.6;se=false;hnp=true;
+#     os=[ - e:p{fo=true;p=flame;a=1;d=true;speed=0.5} @projectileforward{f=4} ]}
+
+# test-radial_projectiles-tick:
+#   Skills:
+#   - e:p{p=spark;a=1}
+
+
+  # Extend the Spiral system.

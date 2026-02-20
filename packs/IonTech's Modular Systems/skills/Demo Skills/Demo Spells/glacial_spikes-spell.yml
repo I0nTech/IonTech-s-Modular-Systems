@@ -1,0 +1,69 @@
+# Slam the ground, releasing a wave of jagged ice. Knocks enemies away and deals damage. 
+
+glacial_spikes-cast:
+  Skills:
+  - skill:Spell{id=glacial_spikes-exec;name=Glacial Spikes;type=ABILITY,ICE;
+    spellcd=6} @self
+
+glacial_spikes-exec:
+  Skills:
+  - skill:glacial_spikes-target{origin=@forward{f=1;yo=0.5;lockpitch=true}} @forward{f=12;yo=0.5;lockpitch=true}
+ # - skill:glacial_spikes-target{origin=@forward{uel=true;f=1;yo=-0.2}} @forward{uel=true;yo=-0.2;f=12}
+  
+glacial_spikes-target:
+  Skills:
+  - skill:setRandomID
+  - projectile{fo=true;ti=1;syo=0;sfo=0;ham=true;drawhitbox=false;
+    v=16;mr=32;hR=1;vR=1;md=50;i=3
+    hnp=true;sb=false;se=false;hs=true;hfs=0;mch=2;mfh=2;
+    onTick=[
+    - skill{s=glacial_spikes-fire;origin=@origin;branch=true} @projectileforward{f=4;yo=<random.float.2to4>;xo=<random.float.-2to2>;zo=<random.float.-2to2>}
+    ]}
+
+glacial_spikes-fire:
+  Skills:
+  - projectile{fo=true;ti=10;syo=0;sfo=0;
+    ham=true;v=24;mr=4;i=1;g=0;hR=0.4;vR=0.4;hnp=true;se=false;
+    onStart=glacial_spikes-start;
+    onTick=glacial_spikes-tick;
+    onHit=glacial_spikes-hit_entity}
+
+glacial_spikes-start:
+  Skills:
+  # - setvarloc{var=originloc;val=@projectileforward{f=0}} 
+  # - slash{fromorigin=true;origin=@VariableLocation{var=originloc};mpd=false;dtt=true;fo=0;yo=0;
+  #   angle=360;points=12;w=0.6;h=0.6;duration=0;pitch=90;roll=0;
+  #   oP=[
+  #   - e:p{fo=true;p=spark;a=1;directional=true;speed=5} @projectileforward{f=4}
+  #   ]} @projectileforward{f=12}
+
+
+glacial_spikes-tick:
+  Skills:
+  - setvar{var=iterations;val="<skill.var.iterations|0>+1"}
+  - setvar{var=progress;val="<skill.var.iterations>/44";type=FLOAT}
+  - setvar{var=progress_length;val="1-<skill.var.iterations>/44";type=FLOAT}
+
+  - setvar{var=radius;val="1";type=FLOAT}
+
+  - setvarloc{var=originloc;v=@origin}
+#  - message{m=<skill.var.iterations> <skill.var.progress>} @self
+
+  # - slash{fromorigin=true;origin=@origin;mpd=false;dtt=true;fo=0;yo=0;
+  #   angle=360;points=2;w=<skill.var.radius>;h=<skill.var.radius>;duration=0;pitch=90;roll="<skill.var.iterations>*24";
+  #   oP=[
+  #   - e:p{fo=true;origin=@VariableLocation{var=originloc};p=spark;a=1;directional=true;speed="<skill.var.progress_length>"} @targetedlocation
+  #   ]} @ProjectileForward{f=4}
+    
+  - e:p{p=dust_color_transition;color1=#71A6D1;color2=#D4F1F8;a=1;size="1.8-<skill.var.progress>"} 
+  - e:p{p=block_dust;material=FROSTED_ICE;a=1} 0.3
+
+glacial_spikes-hit_entity:
+  Skills:
+  - skill:damage-ability{
+    damageMod=[ - variableMath{var=damage;equation="x*1.75"} ];
+    onHit=[
+    - freeze{t=60}
+    - vskill{s=knockback;v=2;vy=0.5;vertical=false}
+    ]}
+  

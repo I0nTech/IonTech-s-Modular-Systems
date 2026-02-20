@@ -1,0 +1,37 @@
+generic_marker:
+  Type: ARMOR_STAND
+  Display: 'Marker'
+  Faction: Server
+  Options:
+    Despawn: true
+    Marker: true
+    HasGravity: false
+    Invisible: true
+    Invincible: true
+
+generic_living_marker:
+  Type: ARMOR_STAND
+  Faction: Server
+  Display: 'Living Marker'
+  Options:
+    Invisible: true
+    Silent: true
+    NoAI: false
+    Invincible: true
+ #   VisibleByDefault: true
+    HasGravity: true
+  #  Marker: true
+
+generic_projectile_marker:
+  Faction: Server
+  Display: 'Projectile Marker'
+  Type: BLOCK_DISPLAY
+  DisplayOptions:
+    Block: AIR
+    Alignment: CENTER
+  Options:
+    Despawn: true
+    CanTick: true
+  Skills:
+  - remove @self ~onLoad
+  - remove{delay=2000} @self ~onSpawn

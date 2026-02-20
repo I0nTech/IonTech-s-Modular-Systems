@@ -1,0 +1,105 @@
+# Note: Was never really used.
+
+# For executing Signature Spells.
+# Signature spells:
+# - Share a common cooldown (signature-cd)
+# - Have Bolded names with an icon. 
+# - Display Signature Cooldown in bossbar
+# - Have a Minimum mana cost; does not consume mana charge on cast. ('mana_cost')
+
+# signature-test_cast:
+#   Skills:
+#   - skill:Signature{name="Unleash Power";type=ARCANE;
+#     spellcd=2;mana_cost=-40;warmup=6;
+#     id=[
+#     - title{st="Power Unleashed!"}
+#     ]} @self
+
+# Signature:
+#   Skills:
+#   - skill:signature
+
+# signature:
+#   Conditions:
+#   - offGCD
+#   Skills:
+#   # Initialize Parameters and Spell variables
+#   - skill{s=spell_parameters-init} @self
+#   - skill{s=spell-init} @self
+#   - setvar{var=name;val='<bold><skill.var.name>';type=STRING} @self
+#   - skill{s=mana_charge-init;mana=<skill.var.mana_cost>} @self
+
+#   - skill:signature-execute
+
+# signature-execute:
+#   Conditions:
+#   - varinrange{var=check_mana;val=>0} orelsecast signature-not_enough_mana 
+#   - hasaura{name=channelling} castinstead channel-interrupt
+#   - hasaura{name=stun} castinstead stun-oncast
+#   - hasaura{name=signature-cd} castinstead signature-oncd
+#   Skills:
+#   - skill{s=mana_charge-evaluate;mana=0}
+#   - skill:metaspell_add{priority=5;o='- vskill{s=signature_select}'} @self
+#   - skill:metaspell_execute
+
+# signature_select:
+#   Skills: 
+#   - message{m="Warmup <skill.var.warmup>"} @self
+#   - skill:metaspell_add{priority=6;o='- vskill{s=signature_channel}'} @self ?varinrange{var=warmup;val=>0}
+#   - return ?varinrange{var=warmup;val=>0}
+#   - skill:metaspell_add{priority=6;o='- vskill{s=signature-cast;branch=true}'} @self 
+
+# signature_channel:
+#   Skills:
+#   - onDamaged{name=channelling;d=<skill.var.warmup>;ma=true;
+#     bt=true;bartimercolor=BLUE;desot=false;
+#     bartimertext="Casting <#ff00ff><skill.name> &e%math_1:_<skill.var.aura-duration>/20%s";
+#     onStart=channel-start_logic;
+#     onHit=channel-hit_logic;
+#     onTick=channel-tick_logic;
+#     onEnd=signature_channel-cast_logic} @self
+
+# signature_channel-cast_logic:
+#   Skills:
+#   - skill{s=channel-tick_logic} @self
+#   - vskill{s=<skill.var.onCast>}
+#   - vskill{s=signature-cast;branch=true}
+
+# signature-cast:
+#   Skills:
+#   - skill{s=spell-init} @self 
+#   - vskill{s=<skill.var.id>} 
+#   - skill{s=signature-cooldown} @self
+
+# signature-cooldown:
+#   Skills:
+#   - skill{s=spell-init} @self 
+  
+#   - auraremove{name="signature-cd"} ?hasaura{name="signature-cd"}
+#   - aura{name="signature-cd";type=cooldown;duration=<skill.var.spell_cooldown>;i=1;ma=false;rd=false;desot=false;
+#     bartimer=true;bartimercolor=BLUE;
+#     bartimertext="<skill.name> &e%math_1:_<skill.var.aura-duration>/20%s";
+#     os=[ - setvar{var=caster.signature-cd;val="%math_1:_<skill.var.aura-duration>/20%";type=FLOAT;d=10} ];
+#     ot=[ - setvar{var=caster.signature-cd;val="%math_1:_<skill.var.aura-duration>/20%";type=FLOAT;d=10} ];
+#     oe=signature-cooldown-end}
+ 
+# #  - am{m="<skill.var.name>"}
+
+# signature-not_enough_mana:
+#   Conditions:
+#   Skills:
+#   - am{m='<#FF5555>✘ <skill.var.name><reset> <#AAAAAA>requires <#00FFFF>%math_0:_-<skill.var.mana|0>%<placeholder.mana_symbol> Mana Charge <#AAAAAA>(Current <#00FFFF>%math_0:_<caster.var.mana_charge>%<placeholder.mana_symbol><#AAAAAA>)'} @self
+#   - sound{s=block.note_block.basedrum;p=0.6;v=0.2;audience=self} @self
+
+# signature-oncd:
+#   Cooldown: 0.25
+#   Conditions:
+#   Skills:
+#   - sound{s=block.note_block.basedrum;p=0.6;v=0.2;audience=self} @self
+#   - am{m="<bold>Signature Spells<reset> &fare still on cooldown for &e<caster.var.signature-cd>s";delay=1} @self ?!varequals{var=displaycd;val=false}
+
+# signature-cooldown-end:
+#   Skills:
+#   - message{m="Signature Spells Ready!"} ?!varequals{var=displaycd;val=false}
+#   - sound{s=entity.experience_orb.pickup;p=0.2;v=0.1;audience=self} @self ?!varequals{var=displaycd;val=false}
+# #  - varunset{var=caster.signature-cd} 

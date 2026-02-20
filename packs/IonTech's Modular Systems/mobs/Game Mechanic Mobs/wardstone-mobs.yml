@@ -1,0 +1,51 @@
+wardstone-base:
+  Type: ARMOR_STAND
+  Display: 'Base Wardstone'
+  Faction: Structures
+  Equipment:
+  - DIAMOND_BLOCK HEAD
+#  DisplayOptions:
+#    Block: DIAMOND_BLOCK
+#    ShadowStrength: 0
+#    Scale: 1,1,1
+#    Translation: -0.5,0,-0.5
+  Options:
+    Despawn: persistent
+    AlwaysShowName: false
+    Invisible: false
+    Silent: true
+    Invincible: false
+    NoAI: true
+  Variables:
+    debug: true
+    claimable: true
+    active_duration: 3
+    radius: 8
+    yradius: 4
+    hitcd: 0.5
+#    color1: FD3A2D
+#    color2: FFA12C
+    oninteract: none
+    onenter: none
+    ontick: none
+    onexit: none
+  Skills:
+  - skill{s=wardstone-init} @self ~onSpawn
+  - skill{s=wardstone-init} @self ~onLoad
+  - skill{s=wardstone-setowner} @self ~onInteract ?~!crouching
+  - skill{s=mob-configure} @self ~onInteract ?~crouching
+  - skill{s=wardstone-exec} @self ~onTimer:10 
+ 
+wardstone-test:
+  Template: wardstone-base
+  Display: 'Test Wardstone'
+  Variables:
+    debug: true
+    claimable: false
+    radius: 4
+    yradius: 2
+    duration: 3
+    ontick: "[ - message{m=testing} @targeted{conditions=[ - isPlayer ]} ]"
+    onexit: wardstone-reveal
+
+ 

@@ -1,0 +1,84 @@
+stat_map-default:
+  Skills:
+  - setvar{var=defaults;type=MAP;val="
+    spell_power=<skill.spell_power|1>;
+    damage=<skill.damage|<caster.damage>>;
+
+    critical_chance=<skill.critical_chance|0.01>;
+    critical_damage=<skill.critical_damage|0>;
+
+    mana_charge=<skill.mana_charge|0>;
+    mana_cost=<skill.mana_cost|0>;
+
+    charges=<skill.charges|0>;
+    charge_regen=<skill.charge_regen|1>;
+    charge_delay=<skill.charge_delay|0>;
+
+    warmup=<skill.warmup|<skill.startup|0>>;
+    charge_cooldown=<skill.charge_cooldown|<skill.chargecooldown|<skill.chargecd|3>>>;
+    spell_cooldown=<skill.spell_cooldown|<skill.spellcooldown|<skill.spellcd|1>>>;
+
+    velocity=<skill.velocity|48>;
+    spread=<skill.spread|0>;
+    range=<skill.range|32>; 
+    radius=<skill.radius|0>;
+    knockback_modifier=<skill.knockback_modifier|1>;
+    status_duration=<skill.status_duration|1>"} @self
+  
+  # Loop through all variables in map, set new ones. 
+  - forEachValue{val=<skill.var.defaults>;
+    skill=[
+    - setvar{var=base_<skill.key>;val=<skill.value>;type=FLOAT}
+    - setvar{var=<skill.key>;val=<skill.value>;type=FLOAT}
+    ]} @self
+
+  # Manually alter some values. 
+  - variablemath{var=base_spell_cooldown;equation=x*20}
+  - variablemath{var=base_charge_cooldown;equation=x*20}
+  - variablemath{var=base_warmup;equation=x*20}
+  - variablemath{var=base_charge_delay;equation=x*20}
+  - variablemath{var=base_critical_damage;equation=x+0.5}
+
+  - variablemath{var=spell_cooldown;equation=x*20}
+  - variablemath{var=charge_cooldown;equation=x*20}
+  - variablemath{var=charge_delay;equation=x*20}
+  - variablemath{var=warmup;equation=x*20}
+  - variablemath{var=critical_damage;equation=x+1}
+
+# Channeling VFX
+  
+channel-start_fx:
+  Skills:
+  - skill{s=[
+    - sound{s=entity.illusioner.cast_spell;pitch=0.1;volume=0.9} 
+    - delay 2
+    - sound{s=entity.illusioner.cast_spell;pitch=0.6;volume=0.9} 
+    - delay 2
+    - sound{s=entity.illusioner.cast_spell;pitch=1.2;volume=0.9} 
+    ]} @self ?varInRange{var=warmup;val=>0.5}
+
+channel-force_interrupt_default:
+  Skills:
+  - skill:spell-cooldown @self
+
+channel-tick_fx:
+  Skills:
+  - setvar{var=pitch;val="<skill.var.pitch|0>+12"} 
+  - setvar{var=yaw;val="<skill.var.yaw|0>+12"}
+  - setvar{var=radius;val="(1-<skill.var.channel_progress|0>)*2+2";type=FLOAT}
+  - e:p{p=enchantment_table;a="1+2*(1-<skill.var.channel_progress|0>)";speed=4;hs=0.3;ys=0.6;y=2} 
+  - polygon{points=3;scale=<skill.var.radius>;db=0.5;mpd=false;
+    pitch="<skill.var.pitch>";yaw="<skill.var.yaw>";
+      oe=[ 
+      - e:p{p=SOUL_FIRE_FLAME;fo=true;origin=@targetedlocation;directional=true;a=1;speed=0.2} @selflocation{yo=1}
+      ]} @selflocation{yo=1}
+
+channel-cast_fx:
+  Skills:
+  - setvarloc{var=originloc;val=@selflocation}
+  - polygon{points=16;scale=4.4;db=0.5;mpd=true;repeat=3;
+    pitch=<random.-15to15>;yaw=<random.-45to45>;
+    oe=[
+    - e:p{p=SOUL_FIRE_FLAME;fo=true;origin=@variablelocation{var=originloc};directional=true;a=1;speed=0.4}
+    ]} @variablelocation{var=originloc}
+  

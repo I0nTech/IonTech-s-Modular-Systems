@@ -1,0 +1,152 @@
+damage-init:
+  Skills:
+  - skill{s=setRandomID} ?!varisset{var=randomid}
+  - skill{s=setRandomID} ?comparevalue{v1=<skill.setid|false>;op===;v2=true}
+
+  - setvar{var=damage_source;val=<skill.damage_source|NONE>;type=LIST} 
+  - setvar{var=damage_type;val=<skill.damage_type|<skill.var.damage_source>>;type=LIST} 
+
+  - setvar{var=targeted;val=<target.uuid>;type=STRING} @targeted
+  - setvar{var=hit_list;val=<skill.var.targeted>;type=LIST} @targeted ?!varisset{var=hit_list}
+  - setvar{var=damage_percent;val=<skill.var.damage>/<skill.var.base_damage|<skill.var.damage>>*100;t=INTEGER}
+
+damage-evaluate:
+  Skills:
+  - variableAdd{var=hit_list;val=<skill.var.targeted>} ?comparevalues{value1=<skill.var.hit_list.contains.<skill.var.targeted>>;operator===;value2=false}
+  - setvar{var=hit_count;val=<skill.var.hit_list.size>;type=INTEGER} 
+
+  - setvar{var=damage_percent;val=<skill.var.damage>/<skill.var.base_damage|<skill.var.damage>>*100;t=INTEGER}
+  - setvar{var=bullet_scale;val=max(min(<skill.var.damage_percent>/200,4),min(max(<skill.var.damage_percent>/50,0.4),1));type=FLOAT} ?!varisset{var=bullet_scale}
+
+  - vskill{s=modifier-trigger;trigger=PRE_DAMAGE}
+
+  - skill{s=damage-critical}
+  # - message{m=Dealing <skill.var.damage> (<skill.var.damage_percent>%)<placeholder.attack>} @self
+ 
+damage-critical:
+  Conditions:
+  - varequals{var=critical;val=true}
+  Skills:
+  - sound{s=entity.player.attack.crit;v=0.5;p=2;audience=caster} @self
+  - playAnimation{e=5}
+  # - vskill{s=modifier-trigger;trigger=CRITICAL_DAMAGE}
+
+  # - message{m="ID <skill.var.randomid> target <skill.var.targeted> target list <skill.var.hit_list> target count <skill.var.hit_list.size>"} @self
+#Targets <caster.var.<skill.var.randomid>-hit_list>
+# - skill{s=damage_indicator}
+
+
+damage_indicator:
+  Skills:
+  - setvarloc{var=damage_origin;val=@LOT{yo=1}}
+  - sudoskill{s=[ - setvarloc{var=damage_origin;val=@LOT{yo=-0.2}} @uuid{u=<caster.var.health_bar_uuid>}  ]} @targeted{conditions=[ - template{t=crypt_mob} ]}
+
+  # - e:p{p=spark;a=12;speed=0.3} @variableLocation{var=damage_origin} 
+  - setvar{var=bullet_text;val=<placeholder.damage_text>;type=STRING}
+
+  - setvar{var=bullet_x;val=(3*(<random.0to10>%2)-1)*<random.float.1to1.6>;type=FLOAT}
+  - setvar{var=bullet_y;val=1.5+(3*(<random.0to10>%2)-1)*<random.float.0.5to1.5>;type=FLOAT}
+  - setvar{var=bullet_z;val=(3*(<random.0to10>%2)-1)*<random.float.1to1.6>;type=FLOAT}
+
+  - setvar{var=bullet_target_distance;val=<target.distance>} @targeted
+  - setvar{var=bullet_velocity;val="min(25,max(<skill.var.bullet_target_distance.mul.2>,8))";type=FLOAT}
+  - setvar{var=bullet_drag;val=max(0.9,min(0.99,0.8+<skill.var.bullet_target_distance>*0.01));type=FLOAT}
+
+  - projectile{fo=true;origin=@variableLocation{var=damage_origin};ti=1;syo=0;sfo=0;i=1;hR=0;vR=0;se=true;sb=false;hnp=true;
+    ham=false;v=<skill.var.bullet_velocity>;d=12;
+    bullet=TEXT;bulletText=<skill.var.bullet_text>;bulletscale=<skill.var.bullet_scale>,<skill.var.bullet_scale>,<skill.var.bullet_scale>;
+    color=0,0,0,0;bulletBrightness=15;bulletBrightnessSky=15;bulletBillboard=CENTER;
+    onTick=[
+    - modifyProjectile{trait=VELOCITY;action=MULTIPLY;value=<skill.var.bullet_drag>}
+    ]} @casterLocation{y=<skill.var.bullet_y>;x=<skill.var.bullet_x>;z=<skill.var.bullet_z>}
+
+damage:
+  TargetConditions:
+  - isLiving true
+  - isCaster false
+  - targets{a=>0} true
+  Skills:
+  - skill{s=damage-init}
+
+  - aura{name=<skill.damage_id|default><skill.var.randomid>;type=iframe;d=<skill.immune|5>;ma=true;rd=false;
+    os=[
+    - vskill{s=<skill.damageMod|[]>} 
+    - vskill{s=<skill.preHit|[]>}
+    - vskill{s=damage-evaluate}
+    - damage{a=<skill.var.damage>;pi=true;pkb=true;ts=false} 
+
+    - vskill{s=<skill.onHit|[]>}
+    - vskill{s=damage_indicator;damage=<skill.var.damage.precision.1|0>} 
+
+    - vskill{s=modifier-trigger;trigger=DAMAGE}
+    ]}
+
+damage-weapon:
+  TargetConditions:
+  - isLiving true
+  - isCaster false
+  - isParent false
+  - targets{a=>0} true
+  Skills:
+  - skill{s=damage-init}
+
+  - aura{name=<skill.damage_id|default><skill.var.randomid>;type=iframe;d=<skill.immune|5>;ma=true;rd=false;
+    os=[
+    - vskill{s=<skill.damageMod|[]>} 
+    - vskill{s=<skill.preHit|[]>}
+    - vskill{s=damage-evaluate}
+    - damage{a=<skill.var.damage>;pi=true;pkb=true;ts=false;tag=WEAPON} 
+
+    - vskill{s=<skill.onHit|[]>}
+    - vskill{s=damage_indicator;damage=<skill.var.damage.precision.1|0>} 
+
+    - vskill{s=modifier-trigger;trigger=WEAPON_HIT}
+    - vskill{s=modifier-trigger;trigger=DAMAGE}
+    ]}
+
+
+damage-ability:
+  TargetConditions:
+  - isLiving true
+  - isCaster false
+  - isParent false
+  - targets{a=>0} true
+  Skills:
+  - skill{s=damage-init}
+
+  - aura{name=<skill.damage_id|default><skill.var.randomid>;type=iframe;d=<skill.immune|5>;ma=true;rd=false;
+    os=[
+    - vskill{s=<skill.damageMod|[]>}
+    - vskill{s=<skill.preHit|[]>}
+    - vskill{s=Suspend}
+    - aura{name=stagger;duration=10;ma=true}
+    - vskill{s=damage-evaluate}
+    - damage{a=<skill.var.damage>;pi=true;pkb=true;ts=false;tag=ABILITY} 
+
+    - vskill{s=<skill.onHit|[]>}
+    - vskill{s=damage_indicator;damage=<skill.var.damage.precision.1|0>} 
+
+    - vskill{s=modifier-trigger;trigger=ABILITY_HIT}
+    - vskill{s=modifier-trigger;trigger=DAMAGE}
+    ]}
+
+
+# tbh this is hacky and shouldn't be used if you can help it
+damage-sudo:
+  TargetConditions:
+  - isLiving true
+  - isCaster false
+  - targets{a=>0} true
+  Skills:
+  - skill{branch=true;s=[
+    - setvar{var=target_uuid;val=<target.uuid>;type=STRING}
+    - sudoskill{s=[
+        - skill{s=setRandomID} ?!varisset{var=randomid}
+        - aura{name=<skill.damage_id|default><skill.var.randomid>;type=iframe;d=<skill.immune|5>;ma=true;rd=false;
+          os=[
+          - vskill{s=damage-evaluate}
+          - vskill{s=<skill.onHit|damage-hit_entity>}
+        ]} @uuid{u=<skill.var.target_uuid>}
+      ]} @parent
+    ]}
+

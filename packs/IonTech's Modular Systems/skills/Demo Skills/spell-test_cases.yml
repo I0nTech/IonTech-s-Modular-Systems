@@ -1,0 +1,181 @@
+# Cooldown Stuff. 
+# cooldown-cast-1:
+#   Skills:
+#   - skill:Spell{
+#       origin=@forward{f=-0.5;yo=-0.2;uel=true};
+#       name="Test Shot";
+#       id=test-shot-fire;
+#       spellcd=200;damage=2.5} @ENO{r=24}
+
+# cooldown-cast-2:
+#   Skills:
+#   - skill:Spell{
+#       name="Chain Shot";warmup=2;
+#       id=test-chainmissile-cast;
+#       spellcd=10} @self
+
+# cooldown-cast-3:
+#   Skills:
+#   - skill:Spell{
+#       name="Spiral Shot";
+#       id=[ - vskill{s=test-spiralshot-fire;origin=@forward{f=-0.5;yo=-0.2;uel=true}} @forward{f=12;uel=true} ];
+#       category=ARCANE;
+#       warmup=0.2;charges=3;chargecd=4;spellcd=2}
+
+# cooldown-cast-4:
+#   Skills:
+#   - skill:Spell{
+#       origin=@forward{f=-0.5;yo=-0.2;uel=true};
+#       name="Spiral Shot Slow";
+#       id=test-spiralshot-fire;
+#       category=ARCANE;
+#       charges=3;chargecd=20;spellcd=6} @forward{f=12;uel=true}
+#   - skill{s=spell-modify_charges;name="Spiral Shot Slow";id=test-spiralshot-fire;charges=3;delay=20} @self
+
+# mana_charge-test_cast:
+#   Skills:
+# #  - skill:mana_charge{mana=20} @self
+# #  - delay 10
+#   - skill:Spell{
+#       name="Spiral Shot";category=ARCANE;id=test-spiralshot-exec;displaycd=false;
+#       damage=12;mana_cost=-30;
+#       charges=3;chargecd=4;spellcd=2} @self
+
+
+# Test Cases for Terminable / Channeling Skill System
+
+# test-terminable-a:
+#   Skills:
+#   - skill:test-terminable{id=test-terminable_a;name="Test Terminable A";warmup=3;spellcd=3;
+#     onInterrupt=[ 
+#       - title{st="Interrupt A";d=10} 
+#       - vskill{s=spell-cooldown} @self
+#       ]} @self
+
+# test-terminable-b:
+#   Skills:
+#   - skill:test-terminable{id=test-terminable_b;name="Test Terminable B";warmup=3;spellcd=3;
+#     onInterrupt=[ - title{st="Interrupt B";d=10} ]} @self
+
+
+
+# # Implement test case. 
+
+# test-terminable:
+#   Skills:
+#   - skill{s=spell_parameters-init} @self
+#   - skill{s=spell-init} @self
+#   - skill{s=test-terminable-exec} @self
+
+# test-terminable-exec:
+#   Conditions:
+#   - hasaura{name=stun} castinstead stun-oncast
+#   - (hasAuraType{t=channel} && hasAura{name=<skill.var.id>-channel} false) cast test-terminable-manual_interrupt
+#   Skills:  
+#   - delay 2 ?hasAuraType{t=channel}
+#   - terminable{name=<skill.var.id>-channel;type=channel;i=1;d=<skill.var.warmup>;
+#     bt=true;bartimercolor=BLUE;bartimertext="Casting <#ff00ff><skill.name> &e%math_1:_<skill.var.aura-duration|0>/20%s";
+#     ma=true;rd=false;desot=false;
+#     conditions=[ - (variableIsSet{var=caster.force_interrupt} || variableIsSet{var=caster.manual_interrupt}) true ];
+#     ox=test-terminable-interrupt_logic;
+#     os=test-terminable-start_logic;
+#     ot=test-terminable-tick_logic;
+#     oe=test-terminable-cast_logic}
+
+# Start Logic
+
+# test-terminable-start_logic:
+#   Skills:
+#   - skill{s=test-terminable-hit_listener} @self
+#   - summon{t=channel_indicator;sip=true;
+#     then=[ 
+#       - setvar{var=channel_uuid;val=<target.uuid>;type=STRING} @targeted
+#       - sudoskill{s=[ 
+#         - mounttarget @parent 
+#         - hide{iao=true} @parent
+#         ]} @targeted
+#       - skill{s=test-terminable-indicator_update}
+#       ]} @self
+#   - vskill{s=<skill.var.onChannelStart>} @self
+
+# # On Damaged / hit Logic
+
+# test-terminable-hit_listener:
+#   Skills:
+#   - setvar{var=interrupt_damage;val=0;type=FLOAT} @self
+#   - ondamaged{name=channel-hit;i=1;d=<skill.var.warmup>;
+#     desot=false;ow=true; 
+#     oh=test-terminable-check_hit} @self
+
+# test-terminable-check_hit:
+#   Conditions:
+#     - damagecause{cause=SUFFOCATION} false
+#     - damagecause{cause=STARVATION} false
+#     - damagecause{cause=FIRE_TICK} false
+#     - damagecause{cause=HOT_FLOOR} false
+#     - damagecause{cause=POISON} false
+#     - damagecause{cause=WITHER} false
+#     - damagecause{cause=FALL} false
+#   Skills:
+#   - variableMath{var=interrupt_damage;equation="x+<skill.var.damage-amount>"} 
+#   - setvar{var=caster.force_interrupt;val=true;type=BOOLEAN;e=1} @self ?varInRange{var=interrupt_damage;val=><skill.var.interrupt>} 
+#   - message{m="&fHit <skill.var.interrupt_damage>/<skill.var.interrupt>"} @self
+
+# # Tick Logic
+
+# test-terminable-tick_logic:
+#   Skills:
+#   - setvar{var=progress;val="(<skill.var.warmup>-<skill.var.aura-duration>)/<skill.var.warmup>";type=FLOAT} @self
+#   - skill{s=test-terminable-indicator_update}
+#   - vskill{s=<skill.var.onChannelTick>}
+
+# test-terminable-indicator_update:
+#   Skills:
+#   - settextdisplay{text="<skill.var.name> <newline><placeholder.channel_progress>"} @uuid{u=<caster.var.channel_uuid>}
+
+# # Interrupt Logic
+
+# test-terminable-interrupt_logic:
+#   Skills:
+#   - skill{s=test-terminable-force_interrupt_logic} @self ?variableIsSet{var=caster.force_interrupt}
+#   - skill{s=test-terminable-manual_interrupt_logic} @self ?variableIsSet{var=caster.manual_interrupt}
+
+#   - varUnset{var=caster.manual_interrupt} @self
+#   - varUnset{var=caster.force_interrupt} @self
+
+#   - sound{s=block.fire.extinguish;pitch=2;volume=0.3} @self
+
+#   - setvar{var=interrupted;val=true;type=BOOLEAN} @self
+#   - removeaura{aura=channel-hit} @self
+
+
+# test-terminable-force_interrupt_logic:
+#   Skills:
+#   - sound{s=block.beacon.deactivate;pitch=1.75;volume=0.6} @self
+#   - sound{s=block.fire.extinguish;pitch=2;volume=0.3} @self
+
+#   - setvar{var=force_interrupt;val=true;type=BOOLEAN} @self
+
+#   - vskill{s=<skill.var.onManualInterrupt>} @self
+#   - vskill{s=<skill.var.onInterrupt>} @self
+
+# test-terminable-manual_interrupt_logic:
+#   Skills:
+#   - sound{s=block.fire.extinguish;pitch=2;volume=0.3} @self
+
+#   - setvar{var=manual_interrupt;val=true;type=BOOLEAN} @self
+
+#   - vskill{s=<skill.var.onForceInterrupt>} @self
+#   - vskill{s=<skill.var.onInterrupt>} @self
+
+# test-terminable-manual_interrupt:
+#   Skills:
+#   - setvar{var=caster.manual_interrupt;val=true;type=BOOLEAN;e=1} @self
+#   - message{m="&f<skill.var.id> Manually Interrupted"} @self
+
+# test-terminable-cast_logic:
+#   Skills:
+#   - removeaura{aura=channel-hit} @self
+#   - remove{delay=1} @uuid{u=<caster.var.channel_uuid>}
+#   - vskill{s=<skill.var.onCast>}
+#   - vskill{s=<skill.var.id>}

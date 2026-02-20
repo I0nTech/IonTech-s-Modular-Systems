@@ -1,9 +1,0 @@
-meditate_test-cast:
-  Skills:
-  - skill:Metaspell{name=Meditate;id=meditate_test-exec;type=ARCANE;
-    consume=false;mana_charge=60;warmup=2;spellcd=24} @self
-
-meditate_test-exec:
-  Skills:
-  - delay 1
-  - skill:mana_charge-spell{mana=<skill.var.mana_charge>}

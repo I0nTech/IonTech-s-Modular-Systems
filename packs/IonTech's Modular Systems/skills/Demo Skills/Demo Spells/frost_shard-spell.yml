@@ -1,0 +1,37 @@
+# Rapidly fire a scatter of frost shards, repeating until all charges are expended. Charges refresh all at once. 
+
+frost_shard-cast:
+  Skills:
+  - skill:Spell{id=[ - vskill{s=frost_shard-exec;branch=true} ];name=Frost Shard;type=ABILITY,ICE;
+    spellcd=0;charges=8;chargecd=2;chargedelay=0.75}
+    
+#pierce=0;projectiles=1;size=1;
+frost_shard-exec:
+  Skills:
+  - skill:projectile_barrage{id=frost_shard-fire;origin=@forward{uel=true;f=1;yo=-1.2};points=2;spread=<random.1to20>;radius=0.4} @forward{yo=-0.4;f=12;uel=true}
+  - delay 1
+  - skill:frost_shard-cast
+
+frost_shard-fire:
+  Skills:
+  - skill:setRandomID
+  - setvarloc{var=originloc;v=@origin}
+  - projectile{fo=true;ti=3;syo=0;sfo=0;hnp=true;se=false;ham=true;
+    velocity=48;i=1;g=0.1;
+    maxrange=32;
+    hradius=0.2;vr=0.2;drawhitbox=false;
+    onTick=frost_shard-tick;
+    onHit=frost_shard-hit_entity;
+    onEnd=frost_shard-end}
+
+frost_shard-tick:
+  Skills:
+  - e:p{p=reddust;color=#77efff;a=1}
+
+frost_shard-hit_entity:
+  Skills:
+  - skill:damage-ability{immune=10;
+    damageMod=[ - variableMath{var=damage;equation="x*0.25"} ];
+    onHit=[
+    - freeze{t=20}
+    ]}

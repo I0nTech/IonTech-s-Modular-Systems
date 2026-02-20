@@ -1,0 +1,13 @@
+vfx:
+  Type: ARMOR_STAND
+  Display: "VFX"
+  Faction: Server
+  Options:
+    Despawn: true
+    Marker: true
+    HasGravity: false
+    Invisible: true
+    Invincible: true
+  Skills:
+  - remove{delay=400} @self ~onSpawn
+  - remove @self ~onLoad

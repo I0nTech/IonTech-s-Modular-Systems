@@ -1,0 +1,23 @@
+damage_indicator:
+  Type: text_display
+  Display: ''
+  Faction: SERVER
+  DisplayOptions:
+    Text: ""
+    LineWidth: 100
+    Billboard: CENTER
+    SeeThrough: true
+    Shadowed: false
+    InterpolationDuration: 3
+    InterpolationDelay: 0
+    Scale: 1,1,1
+    Translation: 0,0,0
+    BlockLight: 15
+    SkyLight: 15
+  Options:
+    Marker: true
+    Invisible: true
+    HasGravity: false
+  Skills:
+  - remove{delay=200} @self ~onSpawn
+  - remove @self ~onLoad

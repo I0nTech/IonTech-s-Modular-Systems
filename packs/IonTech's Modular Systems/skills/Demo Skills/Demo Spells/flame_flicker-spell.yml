@@ -1,0 +1,52 @@
+# Flick out an ember of flame, igniting enemies hit. Deals Critical Damage to burning enemies. 
+# After casting, all charges refresh at once.
+
+flame_flicker-cast:
+  Skills:
+  - skill:Spell{id=flame_flicker-exec;name=Flame Flicker;type=ABILITY,FIRE;
+    spellcd=0;charges=3;chargecd=2;charge_delay=1;charge_regen=3}
+    
+flame_flicker-exec:
+  Skills:
+  - skill:flame_flicker-fire{origin=@forward{uel=true;f=1;yo=-0.2}} @forward{yo=-0.2;f=12;uel=true}
+
+flame_flicker-fire:
+  Skills:
+  - skill:setRandomID
+  - setvarloc{var=originloc;v=@origin}
+  - projectile{fo=true;ti=3;syo=0;sfo=0;hnp=true;se=false;ham=true;
+    velocity=64;i=1;g=0;mr=12;hr=0.4;vr=0.4;drawhitbox=false;
+    onTick=flame_flicker-tick;
+    onHit=flame_flicker-hit_entity;
+    onEnd=flame_flicker-end}
+
+flame_flicker-tick:
+  Skills:
+  - setvarloc{var=targetloc;v=@projectileforward{f=1;x="<random.float.-0.25to0.25>*<skill.var.size|1>";y="<random.float.-0.25to0.25>*<skill.var.size|1>";z="<random.float.-0.25to0.25>*<skill.var.size|1>"}}
+  - e:pl{fo=true;origin=@VariableLocation{var=originloc};p=small_flame;a=1;db=0.3} @VariableLocation{var=targetloc}
+
+  - e:pl{fo=true;origin=@VariableLocation{var=originloc;x="<random.float.-0.1to0.1>";y="<random.float.-0.1to0.1>";z="<random.float.-0.1to0.1>"};
+    p=dust_color_transition;size=0.8;a=1;color1=#f3420c;color2=#ff0000;
+    } @VariableLocation{var=targetloc;x="<random.float.-0.1to0.1>";y="<random.float.-0.1to0.1>";z="<random.float.-0.1to0.1>"}
+    
+  - setvarloc{var=originloc;v=@VariableLocation{var=targetloc}}  
+  - setprojectiledirection @projectileforward{f=14;x="<random.float.-0.25to0.25>";y="<random.float.-0.25to0.25>";z="<random.float.-0.25to0.25>"}
+
+flame_flicker-hit_entity:
+  TargetConditions:
+  - burning castinstead flame_flicker-hit_entity-critical
+  Skills:
+  - skill:damage-ability{immune=10;
+    damageMod=[ - variableMath{var=damage;equation="x*0.6"} ];
+    onHit=[
+    - ignite{d=60}
+    ]}
+
+flame_flicker-hit_entity-critical:
+  Skills:
+  - setvar{var=critical;val=true;type=STRING}
+  - skill:damage-ability{
+    damageMod=[ - variableMath{var=damage;equation="x*1.5"} ];
+    onHit=[
+    - ignite{d=200}
+    ]}

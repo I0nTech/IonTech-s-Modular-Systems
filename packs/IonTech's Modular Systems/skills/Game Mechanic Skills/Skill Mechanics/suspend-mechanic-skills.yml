@@ -1,0 +1,55 @@
+Suspend:
+  Skills:
+  - skill{s=suspend}
+  
+suspend:
+  Skills:
+  - setvar{var=suspend;val="<skill.suspend|20>";type=FLOAT}
+  - sudoskill{cat=true;
+    s=[
+    - skill{s=suspend-check} 
+    ]} 
+
+suspend-check:
+  Skills:
+  - aura{auraname=suspend_check;d=20;i=1;ma=true;sync=true;
+    ot=[
+      - skill{s=[
+        - skill{s=suspend-start}
+        - removeaura{aura=suspend_check}
+        ]} ?directionalVelocity{y=<0.4} ?!altitude{h=0-4}
+      ]}
+
+suspend-start:
+  Conditions:
+  - hasaura{aura=suspend_check}
+  Skills:
+  - onDamaged{name=suspend;d=<skill.var.suspend>;i=1;ma=true;rd=true;sync=true;
+    os=[
+    - setvar{var=airstun_uuid;val=<target.uuid>;type=STRING} @caster
+    - velocity{m=MULTIPLY;vy=1.1;vx=1;vz=1;relative=false}
+    - attribute{attribute=GRAVITY;a=0.035}
+    ];
+    ot=[
+    <#>- velocity{m=multiply;x=1;y=0.5;z=1;relative=false}
+    - sudoskill{s=[ - vskill{s=stun;duration=1} @uuid{u=<skill.var.airstun_uuid>} ]} @trigger
+    - skill{s=[ - removeaura{aura=suspend} ]} ?directionalVelocity{y=<-0.3}
+    ];
+    oe=[
+    - attribute{attribute=GRAVITY;a=0.08}
+    ]}
+    
+suspend-onhit:
+  TargetConditions:
+  - damagecause{cause=FALL} false
+  - damagecause{cause=SUFFOCATION} false
+  - damagecause{cause=STARVATION} false
+  - damagecause{cause=FLY_INTO_WALL} false
+  - damagecause{cause=FIRE_TICK} false
+  - damagecause{cause=HOT_FLOOR} false
+  - damagecause{cause=POISON} false
+  - damagecause{cause=WITHER} false
+  Skills:
+  - removeaura{aura=suspend}
+  # - lunge{v=0;vy=0.25} ?!altitude{h=0-3}
+  - skill{s=suspend;suspend="<skill.var.suspend>/2";delay=6}

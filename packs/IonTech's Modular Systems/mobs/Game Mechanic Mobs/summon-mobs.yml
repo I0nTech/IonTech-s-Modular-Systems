@@ -1,0 +1,35 @@
+summon_base:
+  Type: WOLF
+  DisplayName: Summon Base
+  Options:
+    Despawn: persistent
+    AlwaysShowName: true
+    DigOutOfGround: true
+    PreventRandomEquipment: true
+    PreventItemPickup: true
+    PreventOtherDrops: true
+    PreventJockeyMounts: true
+    PreventTransformation: true
+    PreventSunburn: true
+  Variables:
+#    owneruuid: none
+  Modules:
+    ImmunityTable: true
+    ThreatTable: true
+  Skills:
+  - skill{s=summon-init} @self ~onSpawn
+  - skill{s=summon-init} @self ~onLoad
+  - skill{s=summon-tick} @self ~onTimer:10
+
+  - skill{s=summon-death} @self ~onDeath
+
+#  - skill{s=summon-idle} @self ~onDropCombat
+#  - skill{s=summon-combat} @self ~onEnterCombat
+#  - skill{s=summon-combat} @self ~onChangeTarget
+  - dismount ~onDamaged 
+
+summon-allay:
+  Template: summon_base
+  Type: ALLAY
+  DisplayName: Summoned Allay
+  

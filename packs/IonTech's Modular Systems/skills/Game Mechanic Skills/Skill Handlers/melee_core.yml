@@ -1,0 +1,104 @@
+# melee:
+#   Skills:
+#   - skill:Spell{id=melee-start;name=Melee;type=WEAPON;spellcd=0; displaycd=false} @self
+
+Melee:
+  Skill: melee
+
+melee:
+  Skills:
+  - skill:Spell{id=melee-start;name=Melee;type=WEAPON;spellcd=0;displaycd=false} @self
+ 
+melee-start:
+  Skills:
+  - cancelEvent{sync=true}
+  # - modifyDamage{a=0;m=MULTIPLY_BASE;sync=true}
+  - setvar{var=damage;val="<skill.damage|<caster.damage>>";type=FLOAT} @self ?!varisset{var=damage}
+  - variableMath{var=damage;equation=x*<caster.attack_cooldown>}
+
+  - setvarloc{var=knockback_direction;val=@forward{f=20;lockpitch=true}}
+  - skill:Moveset{maxmoveset=1;moveset_id=melee; 
+    1=melee-sweep_damage;
+    weak=melee-weak_damage;
+    sprint=melee-sprint_damage;
+    crit=melee-critical_damage;
+    uppercut=melee-uppercut_damage;
+    aerial=melee-aerial} @self
+
+melee-sweep_damage:
+  Skills:
+  - skill:damage-weapon{immune=10;setid=false;
+    onHit=[ - vskill{s=knockback-melee_weak} ]} @trigger
+
+melee-weak_damage:
+  Cooldown: 0.25
+  Skills:
+  - skill:damage-weapon{immune=10;setid=false; 
+    onHit=[ - vskill{s=knockback-melee_weak} ]} @trigger
+
+melee-sprint_damage:
+  Skills:
+  - skill:damage-weapon{immune=10;setid=false;
+    onHit=[ - vskill{s=knockback-melee_strong} ]} @trigger
+
+melee-critical_damage:
+  Skills:
+  - skill:damage-weapon{immune=10;
+    damageMod=[ - variableMath{var=damage;equation="x*1.5"} ];
+    onHit=[ 
+      - vskill{s=knockback-melee_critical} 
+      - playAnimation{animation=4} 
+      ]} @trigger
+
+melee-uppercut_damage:
+  Skills:
+  - skill:damage-weapon{immune=10;
+    onHit=[ 
+      - vskill{s=knockback-melee_uppercut} 
+      ]} @trigger
+
+melee-aerial:
+  Skills:
+  - skill:damage-weapon{immune=10;
+    damageMod=[ - variableMath{var=damage;equation="x*1.5"} ];
+    onHit=[ 
+      - vskill{s=knockback-melee_critical} 
+      - playAnimation{animation=4} 
+      - vskill{s=air_chase;ticks=8} @self ]} @trigger
+
+knockback-melee:
+  TargetConditions:
+  - hasaura{aura=denykb} false
+  Skills:
+  - switch{condition=varequals{var=skill.hit;value=<case>};cases=
+        case WEAK=[ - skill{s=knockback-melee_weak} ]
+        case CRIT=[ - skill{s=knockback-melee_critical} ]
+        case SPRINT=[ - skill{s=knockback-melee_critical} ]
+        case UPPERCUT=[ - skill{s=knockback-melee_strong} ]
+        case AERIAL=[ - skill{s=knockback-melee_critical} ]
+        case DEFAULT=[ - skill{s=knockback-melee_strong} ]
+      }   
+
+knockback-melee_weak:
+  Skills:
+  - skill:knockback{origin=@location{x=<caster.l.x.double>;y=<target.l.y.double>;z=<caster.l.z.double>};kb=1.25;kby=0.75;vertical=false} @targeted{conditions=[ - onGround ]}
+  - skill:knockback{origin=@location{x=<caster.l.x.double>;y=<target.l.y.double>;z=<caster.l.z.double>};kb=1.25;kby=-0.75;vertical=false} @targeted{conditions=[ - onGround false ]}
+  - sound{s=entity.player.attack.strong}
+
+knockback-melee_strong:
+  Skills:
+  - skill:knockback{origin=@location{x=<caster.l.x.double>;y=<target.l.y.double>;z=<caster.l.z.double>};kb=1.5;kby=0.75;vertical=false} @targeted{conditions=[ - onGround ]}
+  - skill:knockback{origin=@location{x=<caster.l.x.double>;y=<target.l.y.double>;z=<caster.l.z.double>};kb=1.5;kby=-0.75;vertical=false} @targeted{conditions=[ - onGround false ]}
+  - sound{s=entity.player.attack.strong}
+  - sound{s=entity.player.attack.knockback}
+
+knockback-melee_critical:
+  Skills:
+  - skill{s=knockback-melee_weak}
+  - sound{s=entity.player.attack.crit}
+
+knockback-melee_uppercut:
+  Skills:
+  - skill:knockback{origin=@location{x=<caster.l.x.double>;y=<target.l.y.double>;z=<caster.l.z.double>};kb=1.25;kby=1.6;vertical=false} @targeted
+  - sound{s=entity.player.attack.strong}
+  - sound{s=entity.player.attack.knockback}

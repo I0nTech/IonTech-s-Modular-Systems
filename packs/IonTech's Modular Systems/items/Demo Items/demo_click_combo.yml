@@ -1,0 +1,18 @@
+apprentice_wand:
+  Id: BLAZE_ROD
+  Template: click_combo-quick
+  Display: 'Apprentice Wand'
+  Lore: "Quick Varient"
+  Skills:
+  - skill{s=frost_shard-cast;delay=1} @self ~onSwing ?!hasaura{aura=clickcombo-input}
+  # - message{m=""} @self ~onSwing ?!hasaura{aura=clickcombo-input}
+  - skill{s=click_combo;type=QUICK;
+    duration=10;debug=false;
+    SWAPL=burning_blast-cast;
+    SWAPR=flame_flicker-cast;
+    SWAPDROP=spark_jolt-cast;
+    SWAPSWAP=glacial_spikes-cast;
+    SWAPL+DOWN=void_lance-cast;
+    SWAPR+DOWN=[];
+    SWAPDROP+DOWN=[];
+    SWAPSWAP+DOWN=[]} @self ~onPressF

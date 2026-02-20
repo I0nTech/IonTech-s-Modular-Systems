@@ -1,0 +1,45 @@
+# Exhale a stream of frost, slowing and damaging enemies hit. 
+
+frost_breath-cast:
+  Skills:
+  - skill:Spell{id=frost_breath;name=Frost Breath;type=ICE;
+    spellcd=6;pierce=3;warmup=3;
+    onChannelTick=frost_breath-exec;
+    onInterrupt=[
+    - vskill{s=spell-cooldown}  
+    ]} @self
+
+frost_breath-exec:
+  Skills:
+  - skill{s=frost_breath-fire;origin=@forward{uel=true;f=0.5;yo=-0.2};branch=true;repeat="<skill.var.projectiles|1>-1";repeati=0} @forward{uel=true;yo=-0.2;f=12}
+
+  # - skill{repeat=32;repeati=1;branch=true;s=[
+  #   - skill{s=frost_breath-fire;origin=@forward{uel=true;f=1;yo=-0.2}} @forward{uel=true;yo=-0.2;f=12}
+  #   ]} @self
+
+  #- skill:projectile_scatter{origin=@forward{uel=true;f=1;yo=-0.2};
+  #  id=frost_breath-fire} @forward{yo=-0.2;f=12;uel=true}
+
+frost_breath-fire:
+  Skills:
+  - projectile{fo=true;ti=3;syo=0;sfo=0;hnp=true;se=false;ham=true;
+    v=16;i=1;g=0.1;mr=14;hr=0.2;vr=0.2;drawhitbox=false;
+    onStart=frost_breath-start;
+    onHit=frost_breath-hit_entity} @targetedlocation{xo=<random.float.-1to1>;yo=<random.float.-1to1>;zo=<random.float.-1to1>}
+
+#    onTick=frost_breath-tick;
+
+frost_breath-start:
+  Skills:
+  - e:p{fo=true;p=snowflake;a=1;directional=true;speed=1} @projectileforward{f=16} 
+#  - e:p{fo=true;p=flame;a=1;directional=true;speed="<skill.velocity|16>/16*<random.float.0.8to1.2>"} @projectileforward{f=16} 0.8
+
+frost_breath-hit_entity:
+  Skills:
+  - skill:damage-ability{
+    damageMod=[ - variableMath{var=damage;equation="x*0.1"} ];
+    onHit=[
+    - throw{fo=true;origin=@projectileforward{f=-3};v=2;vy=0}
+    - freeze{t=10}
+    ]}
+  

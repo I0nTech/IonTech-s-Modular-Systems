@@ -1,0 +1,124 @@
+# Note: This really never worked as intended.
+
+# burn_terrain-test_cast:
+#   Skills:
+#   - raytraceto{fo=true;origin=@selfeyelocation;md=200;w=1;
+#     ls=[ - skill{s=burn_terrain-exec} ]} @forward{f=12;uel=true}
+
+# burn_terrain-exec:
+#   Skills:
+#   - skill{s=burn_terrain-start;origin=@targetedlocation} @BNO{r=12}
+
+  #- message{m="<skill.var.radius> <skill.var.burnpower>"}
+#  - skill{s=burn_terrain-instant} @BIR{r=<skill.var.radius>}
+#  - skill{s=burn_terrain-delayed;repeat=5;repeatinterval=1} @BIR{r=<skill.var.radius>;noise=0.3}
+
+# burn_terrain-start:
+#   Skills:
+  # - e:p{p=reddust;a=5;hs=0.5;vs=0.5}
+  # - skill{s=burn_terrain-incinerate} 
+  
+  #...
+  # - skill{s=burn_terrain-dirt_special} #...
+  # - skill{s=burn_terrain-dirt_regular} #...
+  # - skill{s=burn_terrain-sand} #...
+  # - skill{s=burn_terrain-stone_nether} #...
+  # - skill{s=burn_terrain-stone_deep} #...
+  # - skill{s=burn_terrain-stone_surface} #...
+
+  # - skill{s=burn_terrain-foliage} #...
+  # - skill{s=burn_terrain-leaves} #...
+  # - skill{s=burn_terrain-logs} #...
+  # - skill{s=burn_terrain-wood} #...
+
+  # - skill{s=burn_terrain-water} #...
+  # - skill{s=burn_terrain-ice} #...
+
+# burn_terrain-dirt_regular:
+#   TargetConditions:
+#   - blocktype{b=*dirt,*grass_block}
+#   Skills:
+
+# # to: dirt, rooted dirt, coarse dirt
+
+# burn_terrain-dirt_special:
+#   TargetConditions:
+#   - blocktype{b=*convertable_to_mud}
+#   Skills:
+# # to: mud, dead fire coral, coarse dirt
+
+# burn_terrain-sand:
+#   TargetConditions:
+#   - blocktype{b=*sand}
+#   Skills:
+# # to: glass, gray concrete power, air
+
+# burn_terrain-foliage:
+#   TargetConditions:
+#   - blocktype{b=*flowers,*saplings,*crops}
+#   Skills:
+
+# # to: dead bush, fire, air.
+
+# burn_terrain-leaves:
+#   TargetConditions:
+#   - blocktype{b=*leaves}
+#   Skills:
+
+# # to mangrove leaves, air
+
+# burn_terrain-logs:
+#   TargetConditions:
+#   - blocktype{b=*logs_that_burn}
+#   Skills:
+
+# # to POLISHED_BASALT
+
+# burn_terrain-wood:
+#   TargetConditions:
+#   - blocktype{b=*planks}
+#   Skills:
+
+# # to basalt, dead coral
+
+# burn_terrain-stone_surface:
+#   TargetConditions:
+#   - blocktype{b=*stone_ore_replaceables}
+#   Skills:
+
+# # to tuff, cobbled deepslate
+
+# burn_terrain-stone_deep:
+#   TargetConditions:
+#   - blocktype{b=*base_stone_overworld}
+#   Skills:
+# # to deepslate, basalt
+
+# burn_terrain-stone_nether:
+#   TargetConditions:
+#   - blocktype{b=*base_stone_nether}
+#   - blocktype{b=*ancient_city_replaceable} false
+#   Skills:
+
+# # to 
+# # blackstone, magma
+
+# burn_terrain-ice:
+#   TargetConditions:
+#   - blocktype{b=*ice}
+#   Skills:
+
+# # to water
+# burn_terrain-water:
+#   TargetConditions:
+#   - blocktype{b=water}
+#   Skills:
+
+# #to steam (air)
+
+# burn_terrain-incinerate:
+#   TargetConditions:
+#   - blocktype{b=#wool,#wool_carpets,#wooden_stairs,#wooden_slabs,#wooden_fences,#wooden_doors,#snow}
+#   Skills:
+
+# # to fire, air

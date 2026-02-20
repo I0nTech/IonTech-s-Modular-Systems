@@ -1,0 +1,54 @@
+
+insertion_sort-test:
+  Skills: 
+  - skill:insertion_sort{list=1,9,9999,7,6,100,4,3,2031230} @self
+  - skill:insertion_sort{list=1,12,3123,7,3,100,4,412,000;order=desc} @self
+
+string-test:
+  Skills: 
+  - setvar{var=somestring;val=hello:hi;type=STRING} @self
+  - setvar{var=splitstring;val=<skill.var.somestring.replace.:.,>;type=LIST} @self
+  - message{m=<skill.var.somestring> <skill.var.splitstring.0> <skill.var.splitstring.1>} @self
+
+
+insertion_sort: 
+  Skills:
+  - setvar{var=list;val=<skill.list>;type=list}
+  - setvar{var=list_size;val=<skill.var.list.size>;type=INTEGER}
+  - setvar{var=order;val=<skill.order|asc>;type=STRING}  # "asc" or "desc"
+
+  - return ?comparevalue{val1=<skill.var.list_size>;op=<=;val2=1}
+  
+  - foreachvalue{skill=sort_insert;values=<skill.list>}
+  - setvar{var=list;val=<skill.var.list.sliceto.<skill.var.list_size>>;type=LIST} @self
+
+
+  - message{m=<skill.var.list>} @self
+
+sort_insert:
+  Skills:
+  - setvar{var=counter;val="<skill.index>-1"}
+  - return ?varinrange{var=counter;val=<0}
+  - setvar{var=key;val=<skill.value>;type=INTEGER}
+  #- message{m=<skill.var.counter> <skill.var.key>}
+  - skill{s=sort_loop}
+  
+sort_loop:
+  Conditions:
+  - (comparevalues{value1=<skill.var.counter>;operator=>=;value2=0} && 
+     (
+       (comparevalues{value1=<skill.var.key>;operator=<;value2=<skill.var.list.<skill.var.counter>>} && comparevalues{value1=<skill.var.order>;operator===;value2="asc"}) ||
+       (comparevalues{value1=<skill.var.key>;operator=>;value2=<skill.var.list.<skill.var.counter>>} && comparevalues{value1=<skill.var.order>;operator===;value2="desc"})
+     )
+    ) orelsecast sort_end  
+  Skills:
+  #- setvar{var=remover;val=<skill.var.list.remove.<skill.var.counter.add.1>>;val=STRING}
+  - setvar{var=counter;val=<skill.var.counter>-1}
+  #- message{m=<skill.var.counter>} @self
+  - skill{s=sort_loop}
+
+sort_end:
+  Skills:
+  - setvar{var=list;val=<skill.var.list.insert.<skill.var.counter.add.1>.<skill.var.key>>;type=LIST} @self
+  # - setvar{var=test_list;val=<skill.var.test_list.insert.3.1>;type=LIST} @self
+#  - message{m=sorted <skill.var.counter.add.1> <skill.var.key> <skill.var.list>} @self

@@ -1,0 +1,242 @@
+# Older Spell Handler version. Not really much here to use.
+
+
+# Spell:
+#   Skills:
+#   - skill:spell
+
+# spell-init:
+#   Skills:
+#   # Spell Casting Parameters
+#   - setvar{var=debug;val=<skill.debug|false>;type=BOOLEAN}
+
+#   - setvar{var=id;val=<skill.id|unset>;type=METASKILL}
+#   - setvar{var=type;val=<skill.type|<skill.category|Unknown>>;type=LIST}
+#   - setvar{var=name;val=<skill.name|<skill.spell|Unknown>>;type=STRING} 
+#   # - setvar{var=spell_cooldown;val=<skill.spellcooldown|<skill.spell_cooldown|<skill.spellcd|1>>>*20;type=FLOAT}
+#   - setvar{var=displaycd;val=<skill.displaycd|<skill.showcd|true>>;type=STRING}
+#   - skill{s=spell-set_type} 
+
+#   # <skill.var.id>-channel Parameters
+#   # - setvar{var=warmup;val="<skill.warmup|<skill.startup|0>>*20";type=FLOAT}
+#   - setvar{var=interrupt;val="<skill.interrupt|1>";type=FLOAT}
+#   - setvar{var=accdmg;val=0;type=FLOAT}
+
+#   - setvar{var=onChannelStart;val=<skill.onChannelStart|<skill.os|channel-start_fx>>;type=METASKILL}
+#   - setvar{var=onChannelTick;val=<skill.onChannelTick|<skill.ot|channel-tick_fx>>;type=METASKILL}
+#   - setvar{var=onInterrupt;val=<skill.onInterrupt|<skill.oi|channel-interrupt-default>>;type=METASKILL}
+#   - setvar{var=onCast;val=<skill.onCast|<skill.oc|channel-cast_fx>>;type=METASKILL}
+#   - setvar{var=onCooldownCast;val=<skill.onCooldownCast|<skill.occ|[]>>;type=METASKILL}
+#   - setvar{var=onCooldownEnd;val=<skill.onCooldownEnd|<skill.oce|[]>>;type=METASKILL}
+
+
+# spell_parameters-init:
+#   Skill: stat_map-init
+
+# spell-set_type:
+#   Skills:
+#   - setvar{var=name;val="<#ff00ff><skill.var.name>";type=STRING} ?varequals{var=type;val=ARCANE}
+
+# # Execute like a stack.
+# # 1) Initiate variables passed from Spell Parameters.
+# # 2) Check conditions and pass responses based on parameter values. 
+# # 3) Append spell execution vskill to Priority 5 Metaspell.
+# # 4) Execute Metaspell. 
+# spell:
+#   Skills:
+#   # Initialize Variables
+#   - skill{s=spell-init} @self
+#   - skill{s=stat_map-init} @self
+#   - skill{s=mana_charge-init;mana=<skill.var.mana_cost>} @self
+
+#   # Perform Checks & Construct Spell Cast
+#   - skill:spell-execute
+
+# spell-not_enough_mana:
+#   Skills:
+#   - am{m='<#FF5555>✘ <skill.var.name> <#AAAAAA>requires <#00FFFF>%math_0:_-<skill.var.mana|0>%% Charge <#AAAAAA>(Current <#00FFFF>%math_0:_<caster.var.mana_charge>%%<#AAAAAA>)'} @self
+#   - sound{s=block.note_block.basedrum;p=0.6;v=0.2;audience=self} @self
+
+# spell-execute:
+#   Conditions:
+#   - hasaura{name=stun} castinstead stun-oncast
+#   - varinrange{var=check_mana;val=>0} orelsecast spell-not_enough_mana 
+#   - (hasaura{name="<skill.var.id>-cd"} && varequals{var=charges;val=0}) castinstead spell_cooldown-oncd
+#   - (hasaura{name="<skill.var.id>-cd"} && varinrange{var=charges;val=>0}) castinstead spell_charges-oncd
+#   - (varequals{var=caster.<skill.var.id>-charges;val=0} && varinrange{var=charges;val=>0}) castinstead spell_charges-nocharges
+#   - (hasAuraType{t=channel} && hasAura{name=<skill.var.id>-channel} false) cast channel-manual_interrupt
+#   Skills:
+#   - setvar{var=caster.previd;val=<caster.var.currentid|[]>;type=STRING;save=false} @self
+#   - setvar{var=caster.currentid;val=<skill.var.id>;type=STRING;save=false} @self
+#   - message{m="&fCasting <skill.var.id> <caster.var.previd>"} @self ?varequals{var=debug;val=true}
+  
+#   - skill:mana_charge-evaluate{mana=<skill.var.mana_cost>} @self ?!hasaura{name="<skill.var.id>-cd"} 
+#   - skill:metaspell_execute
+
+# metaspell_execute:
+#   Skills:
+#   - skill{s=modifier-trigger;trigger=PRECAST}
+#   - skill{s=critical} @self
+#   - skill{s=spell_select}
+
+# critical:
+#   Skills:
+#   - return ?!chance{c=<skill.var.critical_chance>}
+#   - setvar{var=critical;val=true;type=STRING}
+#   - variablemath{var=damage;equation=x*(1+<skill.var.critical_damage>)}
+#   - setvar{var=base_damage;val=<skill.var.damage>;type=FLOAT}
+#   - message{m=<skill.var.name> CRITICAL <skill.var.critical_chance> DAMAGE <skill.var.critical_damage> + <skill.var.damage>}
+
+# spell_select:
+#   Skills: 
+#   - vskill{s=spell_channel} @self ?varinrange{var=warmup;val=>0}
+#   - return ?varinrange{var=warmup;val=>0}
+#   - vskill{s=spell-cast} @self ?varequals{var=charges;val=0} 
+#   - vskill{s=spell_charges-cast} @self ?varinrange{var=charges;val=>0} 
+
+# # spell-manual_interrupt:
+# #   Skills:
+# #   - sound{s=entity.illusioner.cast_spell;p=0.6;v=0.2;audience=self} @self
+# #   # - setvar{var=caster.manual_interrupt;val=true;t=BOOLEAN;save=false;e=3} @self
+# #   - removeaura{aura=<caster.var.previd>-channel} @self
+
+# spell_channel:
+#   Skills:  
+#   - wait{c=[ - varisset{var=caster.cast_fatigue} false ]} @self
+#   - delay 1
+#   - skill{s=spell_channel-begin} @self
+
+# spell_channel-begin:
+#   Conditions:
+#   - varisset{var=caster.cast_fatigue} false
+#   Skills:
+#   - terminable{name=<skill.var.id>-channel;type=channel;i=1;d=<skill.var.warmup>;
+#     bt=true;bartimercolor=BLUE;bartimertext="Casting <#ff00ff><skill.name> &e%math_1:_<skill.var.aura-duration|0>/20%s";
+#     ma=true;rd=false;desot=false;
+#     conditions=[ - (variableIsSet{var=caster.force_interrupt} || variableIsSet{var=caster.manual_interrupt}) true ];
+#     ox=channel-interrupt_logic;
+#     os=channel-start_logic;
+#     ot=channel-tick_logic;
+#     oe=spell_channel-cast_logic}
+
+# spell_channel-cast_logic:
+#   Skills:
+#   - setvar{var=caster.cast_fatigue;val=1;e=5} @self
+#   - skill{s=channel-tick_logic} @self
+#   - removeaura{aura=channel-hit} @self
+#   - remove{delay=1} @uuid{u=<caster.var.channel_uuid>}
+
+#   - vskill{s=<skill.var.onCast>}
+#   - vskill{s=spell-cast;branch=true} ?varequals{var=charges;val=0} 
+#   - vskill{s=spell_charges-cast;branch=true} ?varinrange{var=charges;val=>0} 
+
+# spell-cast:
+#   Skills:  
+#   - vskill{s=<skill.var.id>} 
+#   - skill{s=modifier-trigger;trigger=CAST}
+#   - skill{s=spell_cooldown;name=<skill.var.name>;id=<skill.var.id>;spell_cooldown=<skill.var.spell_cooldown>} @self
+
+# spell-charge-cast:
+#   Skills:
+#   - skill{s=spell_charges-cast}
+
+# spell_charges-cast:
+#   Skills:
+#   - setvar{var=caster.<skill.var.id>-charges;val=<skill.var.charges>;type=INTEGER;save=false} ?!varisset{name=caster.<skill.var.id>-charges} @self
+#   - setvar{var=caster.<skill.var.id>-max_charges;val="<skill.var.charges>";type=INTEGER;save=false} @self
+#   - skill{s=spell_charges-exec}
+#   - skill{s=spell_charges-regen;name=<skill.var.name>;id=<skill.var.id>;charge_cooldown=<skill.var.charge_cooldown>} @self
+
+# spell_charges-exec:
+#   Skills:
+#   - vskill{s=<skill.var.id>} 
+#   - skill{s=modifier-trigger;trigger=CAST}
+#   - setvar{var=caster.<skill.var.id>-charges;val="<caster.var.<skill.var.id>-charges>-1";type=INTEGER} @self
+#   - skill{s=spell_cooldown;name=<skill.var.name>;id=<skill.var.id>;spell_cooldown=<skill.var.spell_cooldown>} @self
+
+# spell-cooldown:
+#   Skill: spell_cooldown
+
+# spell_cooldown:
+#   Skills:
+#   - auraremove{name="<skill.id|Unknown>-cd"} ?hasaura{name="<skill.id|Unknown>-cd"}
+#   - aura{name="<skill.id|Unknown>-cd";type=cooldown;duration=<skill.spell_cooldown|20>;i=1;ma=false;rd=false;desot=false;
+#     bartimer=true;bartimertext="<skill.var.name> &e%math_1:_<skill.var.aura-duration|0>/20%s";bartimercolor=BLUE;
+#     os=[ - setvar{var=caster.<skill.id|Unknown>-cd;val="%math_1:_<skill.var.aura-duration|0>/20%";type=FLOAT;d=10} ];
+#     ot=[ - setvar{var=caster.<skill.id|Unknown>-cd;val="%math_1:_<skill.var.aura-duration|0>/20%";type=FLOAT;d=10} ];
+#     oe=[ 
+#     - skill{s=spell_cooldown-end} ?varequals{var=charges;val=0} 
+#     - skill{s=spell_charges-cooldown-end} ?varinrange{var=charges;val=>0} 
+#     ]} 
+#   - am{m="<skill.name|Unknown> <placeholder.spell_cooldown> <placeholder.mana_charge_change-oncast>"} ?!varequals{var=displaycd;val=false}
+  
+# spell_charges-regen:
+#   Conditions:
+#   - (varequals{var=caster.<skill.id|Unknown>-charges;val=<caster.var.<skill.id|Unknown>-max_charges>} || varinrange{var=caster.<skill.id|Unknown>-charges;val=><caster.var.<skill.id|Unknown>-max_charges>}) false
+#   Skills:
+#   - aura{name="<skill.id|Unknown>-charge_cooldown";type=cooldown;duration=<skill.charge_cooldown|10>;i=1;ma=false;rd=false;desot=false;
+#     bartimer=false;bartimercolor=BLUE;
+#     bartimertext="<skill.var.name> &f<caster.var.<skill.id|Unknown>-charges>/<caster.var.<skill.id|Unknown>-max_charges><#FFA500>❃ &e%math_1:_<skill.var.aura-duration|0>/20%s";
+#     os=[ - setvar{var=caster.<skill.id|Unknown>-charge_cooldown;val="%math_1:_<skill.var.aura-duration|0>/20%";type=FLOAT;d=10} ];
+#     ot=[ - setvar{var=caster.<skill.id|Unknown>-charge_cooldown;val="%math_1:_<skill.var.aura-duration|0>/20%";type=FLOAT;d=10} ];
+#     oe=[ 
+#     - skill{s=spell-modify_charges;charges=1}
+#     <#>- skill{s=spell_charges-reset}
+#     - skill{s=spell_charges-regen;delay=1}
+#     ]} @self
+
+# spell_charges-nocharges:
+#   Cooldown: 0.25
+#   Skills:
+#   - sound{s=block.note_block.bass;p=1.2;v=0.2;audience=self} @self
+#   - am{m="<skill.var.name> <placeholder.charge_count>, Next charge in &e<caster.var.<skill.var.id>-charge_cooldown>s"} @self ?!varequals{var=displaycd;val=false}
+
+# spell_charges-reset:
+#   Conditions:
+#   - varequals{var=caster.<skill.var.id>-charges;val=<caster.var.<skill.var.id>-max_charges>} || varinrange{var=caster.<skill.var.id>-charges;val=><caster.var.<skill.var.id>-max_charges>}
+#   Skills:
+#   - varunset{var=caster.<skill.var.id>-charges} 
+#   - varunset{var=caster.<skill.var.id>-max_charges} 
+
+# spell_cooldown-end:
+#   Skills:
+#   - message{m="<skill.var.name> &foff cooldown!"} ?!varequals{var=displaycd;val=false}
+#   - sound{s=entity.experience_orb.pickup;p=0.2;v=0.1;audience=self} @self ?!varequals{var=displaycd;val=false}
+#   - vskill{s=<skill.var.onCooldownEnd>} @self
+
+# #    - varunset{var=caster.<skill.var.id>-cd} 
+# spell_charges-cooldown-end:
+#   Skills:
+#   - varunset{var=caster.<skill.var.id>-cd;delay=1} 
+#   - vskill{s=<skill.var.onCooldownEnd>} @self
+
+# spell_cooldown-oncd:
+#   Skills:
+#   - skill{s=spell-oncd}
+
+# spell_cooldown-oncd:
+#   Cooldown: 0.25
+#   Skills:
+#   - sound{s=block.note_block.basedrum;p=0.6;v=0.2;audience=self} @self
+#   - am{m="<skill.name|Unknown> &fis still on cooldown for &e<caster.var.<skill.id|unset>-cd>s";delay=1} @self ?!varequals{var=displaycd;val=false}
+#   - vskill{s=<skill.var.onCooldownCast>} @self
+
+# spell_charges-oncd:
+#   Cooldown: 0.25
+#   Skills:
+#   - sound{s=block.note_block.basedrum;p=0.6;v=0.2;audience=self} @self
+#   - am{m="<skill.var.name> <placeholder.charge_count> &fis still on cooldown for &e<caster.var.<skill.var.id>-cd>s";delay=1} @self ?!varequals{var=displaycd;val=false}
+#   - vskill{s=<skill.var.onCooldownCast>} @self
+
+# spell-modify_charges:
+#   Skills:
+# #  - sound{s=entity.experience_orb.pickup;p=0.2;v=0.2;audience=self}
+#   - setvar{var=caster.<skill.id|unset>-charges;val="min(<caster.var.<skill.id|unset>-charges>+<skill.charges|0>,<caster.var.<skill.id|unset>-max_charges>)"} 
+#   - message{m="<skill.name|Unknown> &fCharges <placeholder.charge_count>"} ?!varequals{var=displaycd;val=false}
+
+# spell-reset_cooldown:
+#   Skills:
+#   - auraremove{name="<skill.id|unset>-cd"} ?hasaura{name="<skill.id|unset>-cd"}
+#   - message{m="<skill.name|Unknown> &fCooldown Reset";delay=1} ?!varequals{var=displaycd;val=false}
+# #  - sound{s=entity.experience_orb.pickup;p=0.2;v=0.2;audience=self} @self ?!varequals{var=displaycd;val=false}
+#   - varunset{var=caster.<skill.id|Unknown>-cd;delay=1} 

@@ -1,0 +1,58 @@
+stun-test_cast:
+  Skills:
+  - skill{s=stun;duration=10} @ENO{r=12}
+  - skill{s=stun;duration=3} @self
+
+Stun:
+  Skill: stun
+
+stun:
+  TargetConditions:
+  - isliving true
+  Skills:
+  - skill{s=stun-apply}
+
+stun-apply:
+  Skills:
+  - setvar{var=stun;val=<skill.duration|<skill.d|<skill.var.stun|0>>>;type=FLOAT} 
+#  - message{m="Stunned for <skill.var.stun>s"} @self
+  - orbital{name=stun;d="<skill.var.stun>*20";i=1;ma=true;
+    bartimer=true;bartimertext="<yellow>Stunned! <yellow>%math_1:_<skill.var.aura-duration>/20%s";bartimercolor=YELLOW;
+    r=0.8;p=20;oy=2.25;hp=false;hnp=false;
+    os=stun-start;
+    ot=stun-tick;
+    oe=stun-end} ?varinrange{var=stun;val=>0}
+
+
+stun-start:
+  Skills:
+  - e:p{p=CRIT;a=12;y=1;hs=0.3;ys=0.3;speed=0.5}
+  - sound{s=block.anvil.land;p=1.60;v=0.4}
+  - sound{s=block.chain.step;p=1.15;v=1.0}
+  - skill{s=crypt-status_bar-signal;status_name=stun;mode=ADD} 
+  - am{m="<#C0C0C0>[<#B10000><bold>!<reset><#C0C0C0>]<reset> <white>You are now <yellow>Stunned <white>for <yellow><target.var.stun-duration>s"} @targeted{conditions=[ - isPlayer ]}
+
+
+stun-tick:
+  # Conditions:
+  # - comparevalue{v1=<skill.var.stun>*20-<skill.var.aura-duration>;op=>;v2=1}
+  Skills:
+  - setvariable{var=target.stun-duration;val="%math_1:_<skill.var.aura-duration>/20%";
+    type=FLOAT;e=10} @targeted{conditions=[ - (isMythicMob || isPlayer) ]}
+  - e:p{p=REDSTONE;color=#FFFF00;amount=1} @origin
+  - e:p{p=CRIT;amount=1;y=1;hs=0.3;ys=0.6;speed=0.1} 0.4
+  - potion{type=SLOW;d=5;l=<skill.level|3>;p=false;i=false}
+  #- potion{type=JUMP;duration=5;level=-5;p=false;i=false}
+  
+stun-oncast:
+  Cooldown: 0.3
+  Skills:
+  - sound{s=block.note_block.basedrum;p=0.6;v=1}
+  - sound{s=block.chain.step;p=1.15;v=1.0}
+  - am{m="<#C0C0C0>[<#B10000><bold>!<reset><#C0C0C0>]<reset> <white>You are still <yellow>Stunned <white>for <yellow><target.var.stun-duration>s";delay=1} @targeted{conditions=[ - isPlayer ]}
+  
+stun-end:
+  Skills:
+  - skill{s=crypt-status_bar-signal;status_name=stun;mode=REMOVE} 
+  - varunset{var=target.stun-duration} @targeted{conditions=[ - (isMythicMob || isPlayer) ]}
+  - potionclear{type=SLOW}

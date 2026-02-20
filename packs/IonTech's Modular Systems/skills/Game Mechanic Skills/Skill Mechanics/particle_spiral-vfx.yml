@@ -1,0 +1,73 @@
+vfx-particle_spiral-projectile:
+  Skills:
+  - projectile{fo=true;origin=@selfeyelocation;sfo=0;syo=0;ham=true;
+    mr=32;i=1;v=16;hnp=true;
+    ot=vfx-particle_spiral-projectile-tick} @forward{f=3;uel=true}
+
+vfx-particle_spiral-projectile-tick:
+  Skills:
+  - skill{s=vfx-particle_spiral;origin=@origin;arc=360;speed=0.1;
+    duration=1;radius=<random.float.1to2>;roll=90+<random.-90to90>;pitch=<random.-12to12>;yaw=<random.-12to12>} @projectileforward{f=3}
+   
+vfx-particle_spiral-test:
+  Skills:
+  - skill{origin=@selfeyelocation;repeat=12;repeati=1;
+    s=[
+    - skill{s=vfx-particle_spiral;duration=12;radius=2;roll=<random.-12to12>;pitch=<random.-12to12>;yaw=45+<random.-12to12>;arc=360}
+    ]} @forward{f=12;uel=true}
+  
+particle_shockwave:
+  Skill: particle_spiral
+
+vfx-particle_spiral:
+  Skills:
+  - skill{s=vfx-particle_spiral-exec;branch=true}
+
+vfx-particle_spiral-init:
+  Skills:
+  - setvar{var=points;value=<skill.points|32>}
+
+  - setvar{var=duration;value=<skill.duration|4>}
+  - setvar{var=radius;value=<skill.radius|2>;type=FLOAT}
+  - setvar{var=outer_radius;value=<skill.radius|2>;type=FLOAT}
+  - setvar{var=reverse;value="<skill.reverse|false>";type=STRING}
+  
+  - setvar{var=arc;value=<skill.arc|360>}
+  - setvar{var=yaw;value=<skill.yaw|0>}
+  - setvar{var=pitch;value=<skill.pitch|0>}
+  - setvar{var=roll;value=<skill.roll|0>}
+  - setvar{var=twoside;value="<skill.twoside|false>";type=STRING}
+  - setvar{var=roll;value="<random.0to1>*180+<skill.var.roll>"} ?varequals{var=twoside;value=true}
+  
+  - setvar{var=particle;value=<skill.particle|<skill.p|FLAME>>;type=STRING}
+  - setvar{var=speed;value=<skill.speed|1/5>;type=FLOAT}
+
+  - setvarloc{var=originloc;v=@origin}
+  - setvar{var=iteration;value=0;type=INTEGER}
+
+vfx-particle_spiral-exec:
+  Skills:
+  - skill{s=vfx-particle_spiral-init}
+  - slash{fromorigin=true;a=<skill.var.arc>;w=<skill.var.radius>;h=<skill.var.radius>;p=<skill.var.points>;
+    yaw=<skill.var.yaw>;pitch=<skill.var.pitch>;roll=<skill.var.roll>;duration=<skill.var.duration>;
+    mpd=false;dtt=true;fo=0;yo=0;
+    oP=vfx-particle_spiral-point}
+
+vfx-particle_spiral-point:
+  Skills:
+  - setvarloc{var=target;val=@targetedLocation}
+  - vskill{origin=@variableLocation{var=origin};s=<skill.vfx|vfx-particle_spiral-default>} @varLocation{var=target} ?varisset{var=origin}
+  - setvarloc{var=origin;val=@targetedlocation}
+
+vfx-particle_spiral-default:
+  Skills:
+  - vskill{s=[ - e:p{fo=true;p=<skill.var.particle>;a=1;directional=true;directionreversed=<skill.var.reverse>;speed=<skill.var.speed>} ]}
+  
+#  - projectile{fo=true;origin=@VariableLocation{var=origin_loc};syo=0;sfo=0;ham=true;
+   # os=[
+  #  - setvarloc{var=origin;val=@targetedlocation} @projectileforward{f=4}
+   # ]} @VariableLocation{var=target}
+ # - message{m="<skill.var.iteration>"} ?varisset{var=origin}
+#  - varmath{var=iteration;val="x+1"} @self
+
+

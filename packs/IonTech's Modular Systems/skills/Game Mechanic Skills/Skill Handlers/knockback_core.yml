@@ -1,0 +1,78 @@
+# Knockback system:
+# Triggers when an entity is hit by a spell or ability. 
+# If target above 3 blocks from 
+# or If knockback impulse is great enough, convert to True Knockback.
+# Set gravity to false
+# If knockback duration ends, and velocity = 0, then Stun and end effect. 
+
+# - skill:Knockback{kb=3;origin=@selflocation} @targeted
+
+knockback-test:
+  Skills:
+  - setvarloc{var=knockback_direction;val=@forward{f=12;yo=12}}
+  - skill:knockback{kb=3;kby=1;origin=@selflocation;vertical=false} @ENO{r=12}
+
+knockback-test2:
+  Skills:
+  - setvarloc{var=knockback_direction;val=@forward{f=12}}
+  - skill:knockback{kb=12;origin=@selflocation} @livingEntitiesInCone{p=true;a=180;r=12}
+
+knockback-test3:
+  Skills:
+  - setvarloc{var=knockback_direction;val=@selflocation}
+  - skill:knockback{kb=12;origin=@forward{f=12;lockpitch=true};vertical=true} @livingEntitiesInCone{p=true;a=90;r=12}
+
+
+knockback:
+  Skills:
+  - skill:knockback-init
+  - foreach{skill=knockback-eval;tt=ENTITY;branch=true} @targeted
+
+  # - skill:knockback-radial ?varequals{var=radial;val=true}
+
+knockback-init:
+  Skills:
+  - setvar{var=kb;val=<skill.velocity|<skill.v|<skill.kb|0>>>;t=FLOAT}
+  - setvar{var=kby;val=<skill.velocityy|<skill.vy|<skill.kby|0>>>;t=FLOAT}
+
+
+  - setvar{var=vertical;val=<skill.vertical|true>;t=BOOLEAN}
+
+  - setvar{var=kb_duration;val="(max(<skill.var.kb>,5)-5)*2";t=INTEGER}
+  - setvar{var=kb_calc;val="max(<skill.var.kb>,<skill.var.kby>)/2";t=FLOAT}
+
+  # - message{m="Knockback Init kb <skill.var.kb> kby <skill.var.kby> calc <skill.var.kb_calc>"} @self
+
+
+  - setvar{var=kb_add;val=<skill.var.kb>,0,<skill.var.kb>;t=VECTOR} ?varequals{var=vertical;val=false}
+  - setvar{var=kb_add;val=<skill.var.kb>,<skill.var.kb>,<skill.var.kb>;t=VECTOR} ?varequals{var=vertical;val=true}
+  - setvar{var=kby_add;val=0,<skill.var.kby>,0;t=VECTOR}
+
+knockback-eval:
+# Variables:
+# knockback_origin -> knockback_direction
+# target_location -> destination_location
+# 
+  Skills:
+  - setvarloc{var=knockback_origin;val=@targetedlocation} @origin
+  - setvarloc{var=knockback_direction;val=@LOT} ?!varisset{var=knockback_direction}
+
+  - setvarloc{var=target_location;val=@LOT}
+
+  - setvar{var=knockback_origin_vec;val=<skill.var.knockback_origin.coords>;t=VECTOR}
+  - setvar{var=knockback_direction_vec;val=<skill.var.knockback_direction.coords>;t=VECTOR}
+  - setvar{var=knockback_offset_vec;val=<skill.var.knockback_direction_vec.sub.<skill.var.knockback_origin_vec>>;t=VECTOR}
+
+  # - message{m="Knockback Offset <skill.var.knockback_offset_vec>"} @self
+
+  - setvar{var=target_location_vec;val=<skill.var.target_location.coords>;t=VECTOR}
+  - setvar{var=destination_location_vec;val=<skill.var.target_location_vec.add.<skill.var.kby_add>.add.<skill.var.knockback_offset_vec.normalized.mul.<skill.var.kb_add>>>;t=VECTOR}
+
+  - setvarloc{var=destination_location;val=@location{c=<skill.var.destination_location_vec.x>,<skill.var.destination_location_vec.y>,<skill.var.destination_location_vec.z>}}
+  # - message{m="Knockback Destination <skill.var.destination_location_vec>"} @self
+
+  - sudoskill{cat=true;s=[
+    <#>- e:pl{fo=true;origin=@variableLocation{var=target_location};p=spark;a=1} @variableLocation{var=destination_location}
+    - propel{v=<skill.var.kb_calc>} @variableLocation{var=destination_location}
+    <#>- vskill{s=knockback-apply} @targeted
+    ]}

@@ -1,0 +1,111 @@
+# Generic Projectile Spread
+spread:
+  Skill: projectile_spread-exec
+
+arrow_spread:
+  Skill: projectile_spread-exec
+
+projectile_spread:
+  Skill: projectile_spread-exec
+
+projectile_spread-exec:
+  Skills:
+  - setvar{var=points;value=<skill.points|<skill.var.projectiles|3>>}
+  - setvar{var=arc;value=<skill.arc|<skill.var.points>*8>}
+
+  - setvar{var=duration;value=<skill.duration|0>}
+  - setvar{var=radius;value=<skill.radius|6>;type=FLOAT}
+
+  - setvar{var=yaw;value=<skill.yaw|0>}
+  - setvar{var=pitch;value=<skill.pitch|0>}
+  - setvar{var=roll;value=<skill.roll|0>}
+  
+  - setvar{var=twoside;value="<skill.twoside|true>";type=STRING}
+  - setvar{var=roll;value="<random.0to1>*180+<skill.var.roll>"} ?varequals{var=twoside;value=true}
+  
+  - setvarloc{var=originloc;v=@origin}
+  - setvar{var=iteration;value="0";type=INTEGER}
+
+  - skill{s=projectile-fire_logic} ?!varinrange{var=points;val=>1}
+  
+  - slash{fromorigin=true;a=<skill.var.arc>;w=<skill.var.radius>;h=<skill.var.radius>;p=<skill.var.points>;
+    yaw=<skill.var.yaw>;pitch=<skill.var.pitch>;roll=<skill.var.roll>;duration=<skill.var.duration>;
+    mpd=false;dtt=true;fo=0;yo=0;
+    oP=projectile-fire_logic} ?varinrange{var=points;val=>1}
+
+projectile-fire_logic:
+  Skills:
+  - vskill{fo=true;origin=@variablelocation{var=originloc};s=<skill.id|[]>;branch=true} @targetedlocation
+
+
+# Generic Projectile Barrage (Left-right alternation)
+projectile_barrage-test:
+  Skills:
+  - skill:projectile_barrage{points=32;spread=12}
+
+projectile_barrage:
+  Skill: projectile_barrage-exec
+
+projectile_barrage-exec:
+  Skills:
+  - setvar{var=points;value=<skill.points|<skill.var.projectiles|3>>}
+  - setvar{var=spread;value=<skill.spread|<skill.var.points>*2>;type=FLOAT}
+  - setvar{var=deviation;value="(1-<skill.accuracy|1>)";type=FLOAT}
+
+  - setvarloc{var=originloc;v=@origin}
+  - skill{s=projectile-fire_logic} ?!varinrange{var=points;val=>1}
+  - skill:projectile_barrage-fire{repeat="<skill.var.points>-1";repeati=3} ?varinrange{var=points;val=>1}
+
+projectile_barrage-fire:
+  Skills:
+  - setvar{var=side;val="2*(<skill.var.itr>%2)-1";type=INTEGER}
+#  - message{m=<skill.var.side>} @self
+
+  - polygon{fromOrigin=true;origin=@forward{uel=true;f=1};points=1;scale=<skill.radius|1>;db=1;mpd=true;
+    roll=<skill.var.roll|0>;
+      oe=[ 
+      <#>- e:p{p=end_rod;a=1}
+      - setvarloc{var=originloc;v=@targetedlocation}
+      ]} @forward{uel=true;f=15}
+
+  - setvar{var=roll;val="<skill.var.roll|0>+<skill.var.spread>+<skill.var.side>*180"}
+
+  - raytraceto{fo=true;origin=@selfeyelocation;md=128;rw=0.5;ys=0;yt=0;
+    locationskill=[
+    - setvarloc{var=targetloc;v=@RLNT{a=1;r=<skill.var.deviation|0>}}
+    ]} @forward{f=12;uel=true}
+
+  - skill:projectile-fire_logic @variablelocation{var=targetloc}
+
+
+# Scatter Logic. Fires projectiles in a shotgun, all at once. 
+# INCOMPLETE. I really need a better way to do proper spead.
+projectile_scatter-test:
+  Skills:
+  - setvar{var=points;value=<skill.points|<skill.var.projectiles|3>>}
+  - setvar{var=spread;value=<skill.spread|<skill.var.points>*2>;type=FLOAT}
+  - setvar{var=deviation;value="(1-<skill.accuracy|1>)";type=FLOAT}
+
+
+# Piercing Logic
+# For checking how many enemies/things a projectile has hit before stopping. 
+pierce-init:
+  Skills:
+  - setvar{var=pierce;val=<skill.pierce|<skill.var.pierce|1>>;type=INTEGER} @self
+  - setvar{var=hits;val=0;type=INTEGER} @self 
+  - message{m=start <skill.var.hits> <skill.var.pierce>} @self ?varequals{val=debug;val=true}
+
+pierce-hit:
+  Skills:
+  - setvar{var=pierce;val=<skill.pierce|<skill.var.pierce|0>>;type=INTEGER} @self ?!varisset{var=pierce}
+  - setvar{var=hits;val="<skill.var.hits|0>+1";type=INTEGER} @self
+  - message{m=test <skill.var.hits> <skill.var.pierce>} @self ?varequals{val=debug;val=true}
+  - skill{s=pierce-end_projectile}
+  
+pierce-end_projectile:
+  Conditions:
+  - ( varinrange{var=hits;val=><skill.var.pierce>} || varequals{var=hits;val=<skill.var.pierce>} )
+  - projectileHasEnded false
+  Skills:
+  - message{m=pierce over} @self ?varequals{val=debug;val=true}
+  - endprojectile 

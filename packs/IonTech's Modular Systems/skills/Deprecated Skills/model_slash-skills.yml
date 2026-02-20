@@ -1,0 +1,162 @@
+# Note: Deprecated. Do not use, there are better methods now.
+
+
+# Parameters
+#   - setvar{var=duration;val="<skill.duration|7>"}
+# Model ID
+# Roll 
+# 10,20,30,40,50...
+# - Do on BlockBench Side
+# RotateDirection 
+# left, right
+# RotateStrength
+# 0-360
+# - Do with SetSpeed + BlockBench animation blending. Takes 1 second to rotate 360 degrees. 0.25 speed will rotate 90 degrees in 1s. Do further math. 
+
+# model_slash-test:
+#   Skills:
+#   - skill{repeat=20;repeati=5;s=[
+#     - skill:model_slash{origin=@selfeyelocation;
+#       instant=true;radius=4;scale=2;
+#       mid=vfx_thick_slash;pid=bone;duration=9;roll=<random.0to360>} @forward{f=20;uel=true}
+#     ]}
+
+
+# model_slash-test2:
+#   Skills:
+#   - skill:model_slash{origin=@selfeyelocation{yo=-0.2};
+#     instant=true;radius=4;scale=2;
+#     mid=vfx_thick_slash;pid=bone;duration=9;roll=45} @forward{f=20;uel=true;yo=-0.2}
+
+# model_slash-test3:
+#   Skills:
+#  # - lunge{v=5;vy=0.1} @self
+#   - skill{repeat=20;repeati=1;s=[
+#     - skill:model_slash{origin=@selfeyelocation;
+#       instant=true;radius=4;scale=2;
+#       mid=vfx_thick_slash;pid=bone;color=FF0000;duration=9;yaw=<random.0to360>;pitch=<random.-22to22>;roll=<random.-22to22>} @forward{f=20;uel=true;yo=-0.2}
+#     ]} @self
+
+# model_slash-test4:
+#   Skills:
+#   - skill:model_slash{origin=@selfeyelocation{yo=-0.2};
+#     instant=true;radius=4;scale=2;increment=0;
+#     mid=vfx_soulfire_slash;pid=bone;state=right_slash;duration=10;roll=45} @forward{f=20;uel=true;yo=-0.2}
+
+
+#   # - delay 10
+#   # - skill:model_slash{mid=vfx_thick_slash;duration=9;roll=180}
+
+# model_slash:
+#   Skills:
+#   - skill{s=model_slash-exec;branch=true}
+
+# model_slash-exec:
+#   Skills:
+#   - skill{s=model_slash-init;twoside=false}
+#   - skill:Slash{twoside=false;vfx=[]}
+#   - skill{s=model_slash-summon;origin=@selfeyelocation{yo=-0.2}}
+
+# model_slash-init:
+#   Skills:
+#   - skill:slash-init
+
+#   - setvar{var=model;val=<skill.model|<skill.mid|vfx_thick_slash>>;type=STRING}
+#   - setvar{var=pid;val=<skill.pid|<skill.part|bone>>;type=STRING}
+#   - setvar{var=state;val=<skill.state|none>;type=STRING}
+#   - setvar{var=scale;val=<skill.scale|1>;type=FLOAT}
+#   - setvar{var=color;val=<skill.color|<skill.tint|FFFFFF>>;type=STRING}
+
+#   - setvar{var=teleport;val=<skill.teleport|false>;type=BOOLEAN}
+#   - setvar{var=increment;val=<skill.increment|1>;type=INTEGER}
+#   - setvar{var=yoffset;val=1.65+<skill.yoffset|<skill.yo|-1/5>>;type=FLOAT}
+
+#   # - setvar{var=roll;val="<random.0to1>*180+<skill.var.roll|0>"} ?varequals{var=twoside;val=true}
+
+#   # - setvar{var=pitchoffset;val="<skill.pitchoffset|0>";type=STRING}
+#   # - setvar{var=yawoffset;val="<skill.yawoffset|0>";type=STRING}
+#   # - setvar{var=rolloffset;val="<skill.rolloffset|180->";type=STRING}
+
+# model_slash-summon:
+#   Skills:
+#   - setVariableLocation{var=target_direction;val=@targetedLocation}
+#   - summon{t=vfx_base;os=false;then=[
+#       - sudoskill{s=[ - skill{s=model_slash-summon_init} @self ]} @targeted
+#     ]} @origin
+
+# model_slash-summon_init:
+#   Skills:
+#   - skill{s=model_slash-slash_static} ?varequals{var=increment;val=0}
+#   - skill{s=model_slash-slash_increment} ?!varequals{var=increment;val=0}
+
+# model_slash-slash_static:
+#   Skills:
+#   - rotatetowards{pitch=true;uel=false;maxyaw=360;maxpitch=360} @variableLocation{var=target_direction}
+#   #- e:pl{p=reddust;a=1} @variableLocation{var=target_direction} 
+
+#   - model{mid=<skill.var.model>;tint=false;scale=<skill.var.scale>;hitboxscale=0;init=false;usm=true}
+#   - brightness{mid=<skill.var.model>;b=15;s=15;em=false;pid=""}
+#   - bodyclamp{player=false;rdelay=0;rduration=0;head=false}
+# #  - AnimateModel{mid=<skill.type|vfx_arrow_impact>;pid="";em=false;rot=24,180,24;rel=true;ow=true;rotmode=LOCAL}
+
+#   - state{mid=<skill.var.model>;s=roll-<skill.var.roll|0>;loop=HOLD;p=1}
+#   - tint{mid=<skill.var.model>;c=<skill.var.color|FFFFFF>}
+#   - cullconfig{bkc=false;vc=false;blc=false}
+
+#   - setvar{var=roll;val=180-<skill.var.roll>;t=INTEGER}
+#   #- message{m=<skill.var.roll>} @server
+
+#   - AnimateModel{mid=<skill.var.model>;pid=<skill.var.pid>;em=false;relative=true;override=true;rotation=<skill.var.pitch>,<skill.var.yaw>,<skill.var.roll>}
+#   - state{m=<skill.var.model>;state=<skill.var.state>;loop=HOLD;p=1}
+
+#   - renderinit{model=<skill.var.model>}
+  
+#   - aura{d=<skill.var.duration>;i=1;
+#     os=[
+#     - teleport @parentlocation{yo=<skill.var.yoffset>} ?varequals{var=teleport;val=true}
+#     ];
+#     ot=[
+#     - teleport @parentlocation{yo=<skill.var.yoffset>} ?varequals{var=teleport;val=true}
+#     <#>- message{m=<skill.var.counter>} @server
+#     ];
+#     oe=[
+#       - remove
+#     ]} @self
+  
+
+# model_slash-slash_increment:
+#   Skills:
+#   - rotatetowards{pitch=true;uel=false;maxyaw=360;maxpitch=360} @variableLocation{var=target_direction}
+#   #- e:pl{p=reddust;a=1} @variableLocation{var=target_direction} 
+
+#   - model{mid=<skill.var.model>_1;tint=false;scale=<skill.var.scale>;hitboxscale=0;init=false;usm=true}
+#   - brightness{mid=<skill.var.model>_1;b=15;s=15;em=false;pid=""}
+#   - bodyclamp{player=false;rdelay=0;rduration=0;head=false}
+# #  - AnimateModel{mid=<skill.type|vfx_arrow_impact>;pid="";em=false;rot=24,180,24;rel=true;ow=true;rotmode=LOCAL}
+
+#   - state{mid=<skill.var.model>_1;s=roll-<skill.var.roll|0>;loop=HOLD;p=1}
+#   - tint{mid=<skill.var.model>_1;c=<skill.var.color|FFFFFF>}
+#   - cullconfig{bkc=false;vc=false;blc=false}
+
+#   - setvar{var=roll;val=180-<skill.var.roll>;t=INTEGER}
+
+#   - AnimateModel{mid=<skill.var.model>_1;pid=<skill.var.pid>;em=false;relative=true;override=true;rotation=<skill.var.pitch>,<skill.var.yaw>,<skill.var.roll>}
+#   - state{m=<skill.var.model>_1;state=<skill.var.state>;loop=HOLD;p=1}
+
+#   - renderinit{model=<skill.var.model>_1}
+  
+#   - setvar{var=counter;val=0;t=INTEGER}
+#   - aura{d=<skill.var.duration>;i=1;
+#     os=[
+#     - teleport @parentlocation{yo=<skill.var.yoffset>} ?varequals{var=teleport;val=true}
+#     ];
+#     ot=[
+#     - setvar{var=counter;val=<skill.var.counter>+<skill.var.increment>}
+#     - changepart{m=<skill.var.model>_1;nm=<skill.var.model>_<skill.var.counter>;p=<skill.var.pid>;np=<skill.var.pid>}
+#     - teleport @parentlocation{yo=<skill.var.yoffset>} ?varequals{var=teleport;val=true}
+#     <#>- message{m=<skill.var.counter>} @server
+#     ];
+#     oe=[
+#       - remove
+#     ]} @self
+  

@@ -1,0 +1,156 @@
+# tbh I dont remember how this works. Use with caution.
+
+select_target-cast:
+  Skills:
+  - skill{s=select_target;id=[
+    - e:p{p=end_rod;a=12;speed=3} @targetedlocation
+    - teleport 
+    - vskill{s=vfx-end_teleport-summon}
+    ]} @self
+
+select_target-cast2:
+  Skills:
+  - skill{s=select_target;id=[
+    - vskill{s=mana_blast-fire;origin=@selfeyelocation{yo=12}} @targetedlocation
+    ]} @self
+
+select_target-cast3:
+  Skills:
+  - skill{s=select_target;mode=ENTITY;id=[
+    - vskill{s=healbeam-fire;origin=@selfeyelocation{yo=-0.2}} @LOT{yo=1.5}
+    ]} @self
+
+select_target:
+  Skills:
+  - setvar{var=mode;value=<skill.mode|LOCATION>;type=STRING}
+  - setvar{var=range;value=<skill.range|32>}
+  - setvar{var=radius;value=<skill.radius|8>;type=FLOAT}
+  - setvar{var=duration;value="<skill.duration|10>*20";type=FLOAT}
+  - setvar{var=debug;value=<skill.debug|false>;type=STRING}
+  - setvar{var=id;value=<skill.id|<skill.var.id|[]>>;type=STRING}
+  - setvar{var=marker_init;value=<skill.marker_init|none>;type=STRING}
+
+  - switch{condition=varequals{var=mode;val=<case>};
+    cases=
+      case LOCATION=[
+        - skill{s=select_target-location} @self
+        ]
+      case ENTITY=[
+        - skill{s=select_target-entity} @self
+        ]
+      case ANY=[
+        <#>- skill{s=select_target-any} @self
+        ]
+      case DEFAULT=[
+        - skill{s=select_target-location} @self
+        ]
+    } @self
+
+select_target-summon_reticle:
+  Skills:
+  - remove @children{c=[ - mythicmobtype{t=target_marker-block} ]}
+  - summon{t=target_marker-block;os=false;sip=true;then=[
+    - setvar{var=target_marker_uuid;value=<target.uuid>;type=STRING}
+    - sudoskill{s=[ - vskill{s=<skill.var.marker_init>} @self ]} @targeted
+    - remove{delay=<skill.var.duration>}
+    ]}
+ # - message{m=<skill.var.target_marker_uuid>} @self
+
+# Location Targeting
+
+select_target-location:
+  Skills:
+  - onSwing{name=location_targeting;type=targeting;duration=<skill.var.duration>;i=1;ow=true;
+    bartimer=true;bartimertext="Swing to Cast";bartimercolor=BLUE;
+    os=[
+    - skill{s=select_target-summon_reticle} @targetlocation
+    ];
+    ot=[
+    - skill{s=select_target-location-traceforward;origin=@forward{f=0.5;uel=true}} @forward{f=24;uel=true}
+    ];
+    oe=select_target-location-skill}
+
+select_target-location-traceforward:
+  Skills:
+  - projectile{fo=true;ti=100;syo=0;sfo=0;drawhitbox=false;ham=true;
+    v=1000;mr=<skill.var.range>;i=1;hR=0.5;vR=0.5;hnp=true;se=true;
+    conditions=[ - isLiving true ];
+    onTick=[ - e:p{p=spark;a=1} ?varequals{var=debug;val=true} ];
+    onEnd=[ 
+    <#>- e:pl{fo=true;origin=@origin;particle=spark;a=1;db=0.4}
+    - skill{s=select_target-location-tracedown} @projectileforward{f=0.5}
+    ]}  
+
+select_target-location-tracedown:
+  TargetConditions:
+  - blocktype{type=AIR} orelsecast select_target-location-move_reticle
+  Skills:
+  - projectile{fo=true;origin=@origin{yo=0.5};ti=50;syo=0;sfo=0;ham=true;
+    v=1000;mr=<skill.var.range>;i=1;hR=0.1;vR=0.1;hnp=true;se=false;
+    conditions=[ - isLiving true ];
+    onTick=[ - e:p{p=spark;a=1} ?varequals{var=debug;val=true} ];
+    onEnd=[ 
+    <#>- e:pl{fo=true;origin=@origin;particle=spark;a=1;db=0.4}
+    - skill{s=select_target-location-move_reticle} 
+    ]} @targetedlocation{yo=-12}
+  
+select_target-location-move_reticle:
+  Skills:
+ # - pull{to=true;origin=@origin;v=8} @UUID{u=<skill.var.target_marker_uuid>}
+  - teleportto{location=@origin} @UUID{u=<skill.var.target_marker_uuid>}
+  - e:pr{p=spark;a=1;points=16;radius=<skill.var.radius>} ?varequals{var=debug;val=true} 
+
+# Execute Skill
+select_target-location-skill:
+  Skills:
+  - removeaura{aura=location_targeting} @self
+
+  - skill{s=[
+    - vskill{s=<skill.var.id>} @LOT
+    - remove
+    ]} @UUID{u=<skill.var.target_marker_uuid>}
+
+# Entity Targeting
+select_target-entity:
+  Skills:
+  - onSwing{name=entity_targeting;type=targeting;duration=<skill.var.duration>;i=1;ma=true;
+    bartimer=true;bartimertext="Swing to Cast";bartimercolor=BLUE;
+    os=[
+    - skill{s=select_target-summon_reticle} @targetlocation
+    - skill{s=select_target-entity-set_target} @ENO{r=<skill.var.range>;limit=1;sort=NEAREST} 
+    - skill{s=select_target-entity-set_target} @LivingInCone{a=45;r=<skill.var.range>;limit=1;sort=NEAREST;pitch=true}
+    ];
+    ot=select_target-entity-traceforward;
+    osw=select_target-entity-skill}
+
+select_target-entity-set_target:
+  TargetConditions:
+  - (isLiving || mythicmobtype{t=spatial_anchor}) true
+  Skills:
+  - setvar{var=temp_targetuuid;val=<target.uuid>;type=STRING}
+  - setvar{var=targetuuid;val="none";type=STRING} ?!varisset{var=targetuuid}
+
+  - skill{s=[
+      - setvar{var=targetuuid;val=<target.uuid>;type=STRING} 
+      - skill{s=select_target-entity-move_reticle} @self 
+    ]} ?!stringequals{val1=<skill.var.temp_targetuuid>;val2=<skill.var.targetuuid>}
+  
+select_target-entity-traceforward:
+  Skills:
+  - raytraceto{fo=true;origin=@selfeyelocation;md=<skill.var.range>;rw=1;
+    entityskill=[ 
+    - skill{s=select_target-entity-set_target}
+    ]} @targetlocation
+
+select_target-entity-move_reticle:
+  Skills:
+  - skill{s=[ - skill{s=select_target-summon_reticle} @LOT ]} @uuid{u=<skill.var.target_marker_uuid>}
+  - setvar{var=target.targetuuid;val=<skill.var.targetuuid>;type=STRING} @uuid{u=<skill.var.target_marker_uuid>} 
+  - signal{s=retarget} @uuid{u=<skill.var.target_marker_uuid>} 
+
+# Execute Skill
+select_target-entity-skill:
+  Skills:
+  - removeaura{aura=entity_targeting} @self
+  - vskill{s=<skill.var.id>} @UUID{u=<skill.var.targetuuid>}
+  - remove @UUID{u=<skill.var.target_marker_uuid>}

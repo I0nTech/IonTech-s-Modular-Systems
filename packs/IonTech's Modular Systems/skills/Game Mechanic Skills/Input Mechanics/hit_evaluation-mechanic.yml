@@ -1,0 +1,42 @@
+# Guesses what kind of Vanilla Hit occured upon being cast. 
+# Returns the hit type in <skill.var.hit>
+# Best used in an ~onAttack trigger or asap after cast. 
+hit_evaluate:
+  Skill: eval-hit
+
+eval-hit:
+  Conditions:
+  - comparevalue{v1=<caster.attack_cooldown>;op=<=;v2=0.9} cast attack-weak
+  - (altitude{h=0-3} false) castinstead attack-aerial
+  - (isSprinting{} && iscrouching false) castinstead attack-sprint-hit
+  - (onground{} && iscrouching false) castinstead attack-hit
+  - (onground{} && iscrouching true) castinstead attack-uppercut
+  - (fallspeed{s=>0.1} && altitude{h=0-3}) castinstead attack-crit
+  #- directionalVelocity{y=<0.1} castinstead attack-crit
+
+attack-weak:
+  Skills:
+  - setvariable{var=hit;type=STRING;value="WEAK"} @self
+
+attack-hit:
+  Skills:
+  - setvariable{var=hit;type=STRING;value="HIT"} @self
+ # - message{m="<skill.var.hit>"} @self
+attack-sprint-hit:
+  Skills:
+  - setvariable{var=hit;type=STRING;value="SPRINT"} @self
+#  - message{m="<skill.var.hit>"} @self
+attack-uppercut:
+  Skills:
+  - setvariable{var=hit;type=STRING;value="UPPERCUT"} @self
+#  - message{m="<skill.var.hit>"} @self
+attack-aerial:
+  Skills:
+  - setvariable{var=hit;type=STRING;value="AERIAL"} @self
+ # - message{m="<skill.var.hit>"} @self
+  
+attack-crit:
+  Skills:
+  - setvariable{var=hit;type=STRING;value="CRIT"} @self
+ # - message{m="<skill.var.hit>"} @self
+ 

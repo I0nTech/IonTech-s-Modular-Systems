@@ -1,0 +1,57 @@
+# Unleash a devastating lance of Void Energy, dealing immense damage and piercing multiple targets. 
+
+void_lance-cast:
+  Skills:
+  - skill:Spell{id=void_lance-exec;name=Void Lance;type=ABILITY,VOID;
+    warmup=1.3;pierce=6;warmup=1;stun=1;spellcd=20;
+    onChannelTick=[ 
+      - vskill{s=channel-tick_fx} 
+      - potion{t=SLOWNESS;l=2;duration=4;a=false;i=false;p=false}
+      ]}
+
+void_lance-exec:
+  Skills:
+  - skill:projectile_spread{origin=@forward{uel=true;f=1;yo=-0.2};
+    id=void_lance-fire} @forward{yo=-0.2;f=12;uel=true}
+
+void_lance-fire:
+  Skills:
+  - skill:setRandomID
+  - setvarloc{var=originloc;v=@origin}
+  - projectile{fo=true;ti=4;syo=0;sfo=0;hnp=true;se=false;ham=true;
+    velocity=64;i=1;g=0;maxrange=128;hradius=0.6;vr=10.6;drawhitbox=false;
+    onTick=void_lance-tick;
+    onHit=void_lance-hit_entity;
+    onEnd=void_lance-end}
+
+void_lance-tick:
+  Skills:
+  - e:p{fo=true;origin=@projectileforward{f=1};p=reverse_portal;a=1;speed=0;directional=true} @projectileforward{f=0}
+  - setvar{var=iterations;value="<skill.var.iterations|0>+1"}
+
+  - setvarloc{var=originloc;v=@origin}
+  - slash{fromorigin=true;origin=@ProjectileForward{f=-2};mpd=false;dtt=true;fo=0;yo=0;
+    angle=360;points=4;w=<skill.var.size|1>;h=<skill.var.size|1>;duration=0;pitch=90;roll="<skill.var.iterations>*24";
+    oP=[
+    - e:p{fo=true;origin=@VariableLocation{var=originloc};p=portal;a=1;directional=true;speed=1} @targetedlocation
+    - e:p{fo=true;origin=@VariableLocation{var=originloc};p=reverse_portal;a=1;directional=true;speed=0.1} @targetedlocation
+    ]} @ProjectileForward{f=2}
+
+  - slash{fromorigin=true;origin=@origin;mpd=false;dtt=true;fo=0;yo=0;
+    angle=360;points=4;w=<skill.var.size|1>;h=<skill.var.size|1>;duration=0;pitch=90;roll="45+<skill.var.iterations>*12";
+    oP=[
+    - e:p{fo=true;origin=@VariableLocation{var=originloc};p=spark;a=1;directional=true;speed=0.6} @targetedlocation
+    ]} @ProjectileForward{f=4}
+
+void_lance-hit_entity:
+  Skills:
+  - skill:damage-ability{
+    damageMod=[ - variableMath{var=damage;equation="x*3"} ];
+    onHit=[
+    - e:p{p=portal;speed=0.3;a=12;hs=0.4;vs=0.6;y=1}
+    - vskill{s=knockback;origin=@selfLocation;v=3;vy=1;vertical=true}
+    ]}
+
+void_lance-end:
+  Skills:
+  

@@ -1,0 +1,52 @@
+dummy:
+  Type: Zombie
+  Template: hostile_mob,mob_levelling
+  Display: 'Dummy'
+  Health: 1000
+  Damage: 1
+  Options:
+    NoAI: true
+    MovementSpeed: 0
+    Despawn: false
+    PreventSunburn: true
+    AlwaysShowName: true
+    Silent: true
+  Skills:
+  - heal{a=1000} @self ~onSignal:reset
+
+dummy-kb:
+  Type: Zombie
+  Template: dummy
+  Display: 'Dummy'
+  Options:
+    NoAI: false
+  Skills:
+  - removeaura{aura=resetpos} @self ?hasaura{aura=resetpos} ~onSignal:reset
+  - removeaura{aura=resetpos} @self ?hasaura{aura=resetpos} ~onSignal:test_1
+  - aura{auraname=resetpos;d=500;rd=true;
+    oe=[ 
+      - tp{} @SpawnLocation{blockcentered=true} 
+      ]} @self ~onDamaged
+
+dummy-killable:
+  Health: 100
+  Type: Zombie
+  Template: dummy-kb
+  Options:
+    NoAI: false
+    MovementSpeed: 0.2
+  Skills:
+  - removeaura{aura=resetpos} @self ?hasaura{aura=resetpos} ~onSignal:reset
+  - removeaura{aura=resetpos} @self ?hasaura{aura=resetpos} ~onSignal:test_1
+  - aura{auraname=resetpos;d=500;rd=true;
+    oe=[ - tp{} @SpawnLocation{blockcentered=true} ]} @self ~onDamaged
+    
+dummy-armor:
+  Type: Zombie
+  Template: dummy
+  Display: 'Dummy with armor'
+  Equipment:
+  - DIAMOND_HELMET HEAD
+  - DIAMOND_CHESTPLATE CHEST
+  - DIAMOND_LEGGINGS LEGS
+  - DIAMOND_BOOTS FEET

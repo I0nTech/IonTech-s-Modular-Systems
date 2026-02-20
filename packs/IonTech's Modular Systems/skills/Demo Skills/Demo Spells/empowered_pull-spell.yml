@@ -1,0 +1,47 @@
+
+# While channelling, pulls enemies towards a point in front of you. Upon completion, blast the pulled enemies away.
+empowered_pull-cast:
+  Skills:
+  - skill:Spell{id=empowered_pull-exec;name=Empowered Pull;type=ABILITY,FORCE;
+    damage=3;spellcd=12;mana_charge=3;pierce=10;warmup=0.6;
+    onChannelStart=empowered_pull-target;
+    onChannelTick=empowered_pull-targeting;
+    onInterrupt=[
+    - vskill{s=channel-interrupt_fx}
+    - vskill{s=spell-cooldown}  
+    ]} @self
+
+# empowered_pull-target:
+#   Skills:
+#   - setvar{var=yaw;val=<caster.l.yaw>;type=FLOAT}
+#   - setvar{var=pitch;val="<caster.l.pitch>+90";type=FLOAT}
+
+#   - setvarloc{var=target_location;val=@targetedLocation} @forward{f=12;uel=true}
+
+# empowered_pull-targeting:
+#   Skills:
+#  # - setvar{var=itr;val="<skill.var.itr|-1>+1"}
+#  # - setvarloc{var=origin_location;val=@selfEyeLocation}
+
+# empowered_pull-exec:
+#   Skills:
+#   - delay 1
+#   - skill{repeat=8;repeatinterval=1;s=[
+#       - polygon{points=6;scale=3;db=0.5;mpd=false;yaw="<skill.var.yaw>";pitch="<skill.var.pitch>";roll="<skill.var.itr>*12";
+#         oe=[ - e:p{p=reverse_portal;size=2;fo=true;directional=true;a=1;speed=1} @forward{f=1;uel=true;length=-20} ]}
+#     ]} @variableLocation{var=target_location}
+
+
+#   - skill{origin=@selfeyelocation;s=[
+#     - setvarloc{var=origin_location;val=@origin}
+#     - skill{s=[
+#       - skill{s=empowered_pull-hit_entity}
+#       ]} @entitiesInLine{r=3;fromorigin=true}
+#     ]} @variableLocation{var=target_location}
+
+# empowered_pull-hit_entity:
+#   Skills:
+#   - skill:spell_damage
+#   - e:p{p=portal;a=2;hs=0.3;vs=0.5;y=1}
+#   - pull{to=true;origin=@forward{f=2};v=12}
+#   - e:p{p=reddust;a=1;color=#A020F0;hs=0.3;vs=0.5;y=1;size=3;repeat=6;repeati=1}

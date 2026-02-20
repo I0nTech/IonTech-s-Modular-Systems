@@ -1,0 +1,140 @@
+cd: "<reset><#00ff33>⌚"
+warmup: "<reset><#FFFF55>⌛"
+charges: "<#6cd5ff>"
+mana: '<reset><#00ffff>✵'
+warn: '<reset><#C0C0C0>[<#B10000><bold>!<reset><#C0C0C0>]<reset><white>'
+
+# Mana Charge Related
+
+mana_charge_change: 
+  charge_increase:
+    Conditions:
+    - varinrange{var=caster.mana_charge_change;val=>0}
+    Value: '<#0096d1>[<reset>%progress_bar_<caster.var.mana_charge>_c:<#00FFFF>■_p:<#444444>■_r:<#444444>■_l:10_m:<caster.var.mana_charge_max>_fullbar:<#00ccff>■■■■■■■■■■%<reset><#0096d1>] <#00FFFF>%math_0:_<caster.var.mana_charge>/<caster.var.mana_charge_max>*100%% <#66FF00>(+%math_1:_<caster.var.mana_charge_change>%%)'
+  charge_decrease:
+    Conditions:
+    - varinrange{var=caster.mana_charge_change;val=<0}
+    Value: '<#0096d1>[<reset>%progress_bar_<caster.var.mana_charge>_c:<#00FFFF>■_p:<#444444>■_r:<#444444>■_l:10_m:<caster.var.mana_charge_max>_fullbar:<#00ccff>■■■■■■■■■■%<reset><#0096d1>] <#00FFFF>%math_0:_<caster.var.mana_charge>/<caster.var.mana_charge_max>*100%% <#ff1e00>(%math_1:_<caster.var.mana_charge_change>%%)'
+  Default: ''
+
+mana_charge_change-oncast:
+  charge_increase:
+    Conditions:
+    - varinrange{var=mana_cost;val=>0}
+    Value: '<placeholder.mana_charge_value> <#66FF00>(+%math_0:_<skill.var.mana_cost|0>%%)'
+  charge_decrease:
+    Conditions:
+    - varinrange{var=mana_cost;val=<0}
+    Value: '<placeholder.mana_charge_value> <#ff1e00>(%math_0:_<skill.var.mana_cost|0>%%)'
+  Default: ''
+
+mana_charge_current:
+  Default: '<#0096d1>[<reset>%progress_bar_<caster.var.mana_charge>_c:<#00FFFF>■_p:<#444444>■_r:<#444444>■_l:10_m:<caster.var.mana_charge_max>_fullbar:<#00ccff>■■■■■■■■■■%<reset><#0096d1>] <#00FFFF>%math_0:_<caster.var.mana_charge>/<caster.var.mana_charge_max>*100%%'
+
+mana_charge_value: 
+  Default: '<#00FFFF>%math_0:_<caster.var.mana_charge>%<#C0C0C0>/<#00FFFF>%math_0:_<caster.var.mana_charge_max>%%'
+
+# Cooldown Related
+
+spell_charge_count: 
+  Default: '<#C0C0C0>[<#6cd5ff><caster.var.<skill.var.id>-charges>/<caster.var.<skill.var.id>-max_charges><#C0C0C0>]'
+
+spell_cooldown: 
+  Default: '<skill.name|Unknown> &fis now on cooldown for <placeholder.cd><caster.var.<skill.var.id>-cd|<skill.var.spell_cooldown.div.20>>s'
+
+spell_cooldown_charges: 
+  Default: '<skill.name|Unknown> <placeholder.spell_charge_count> &fis now on cooldown for <placeholder.cd><caster.var.<skill.var.id>-cd|<skill.var.spell_cooldown.div.20>>s'
+
+spell_on_cooldown: 
+  set:
+    Conditions:
+    - varisset{var=caster.<skill.var.id>-cd} false
+    Value: ''
+  charge:
+    Conditions:
+    - varinrange{var=charges;val=>0}  
+    Value: '<skill.name|Unknown> <placeholder.spell_charge_count> &fis still on cooldown for <placeholder.cd><caster.var.<skill.var.id>-cd>s<reset>'
+  Default: '<skill.name|Unknown> &fis still on cooldown for <placeholder.cd><caster.var.<skill.var.id>-cd>s<reset>'
+
+spell_no_charges:
+  set:
+    Conditions:
+    - varisset{var=caster.<skill.var.id>-charge_cd} false
+    Value: '<skill.name|Unknown> <placeholder.spell_charge_count>, Next charge in <placeholder.cd><skill.var.charge_cooldown.div.20.add.<caster.var.<skill.var.id>-charge_delay>>s'
+  Default: '<skill.name|Unknown> <placeholder.spell_charge_count>, Next charge in <placeholder.cd><caster.var.<skill.var.id>-charge_cd>s'
+
+spell_cooldown_reset: 
+  charge:
+    Conditions:
+    - varinrange{var=charges;val=>0} 
+    Value: '<skill.name|Unknown> <placeholder.spell_charge_count> &fCooldown Reset'
+  Default: '<skill.name|Unknown> &fCooldown Reset'
+
+spell_off_cooldown:
+  Default: '<skill.name|Unknown> <placeholder.cd>Ready'
+
+spell_charges_off_recharge:
+  Default: '<skill.name|Unknown> <placeholder.spell_charge_count> (+<skill.var.charge_regen.round>)'
+
+
+
+# Channeling Progress
+channel_progress:
+  100:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=100}
+    Value: '<#0096d1>[<reset><#00FFFF>■■■■■■■■■■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  90:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=90}
+    Value: '<#0096d1>[<reset><#00FFFF>■■■■■■■■■<#444444>■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  80:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=80}
+    Value: '<#0096d1>[<reset><#00FFFF>■■■■■■■■<#444444>■■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  70:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=70}
+    Value: '<#0096d1>[<reset><#00FFFF>■■■■■■■<#444444>■■■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  60:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=60}
+    Value: '<#0096d1>[<reset><#00FFFF>■■■■■■<#444444>■■■■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  50:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=50}
+    Value: '<#0096d1>[<reset><#00FFFF>■■■■■<#444444>■■■■■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  40:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=40}
+    Value: '<#0096d1>[<reset><#00FFFF>■■■■<#444444>■■■■■■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  30:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=30}
+    Value: '<#0096d1>[<reset><#00FFFF>■■■<#444444>■■■■■■■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  20:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=20}
+    Value: '<#0096d1>[<reset><#00FFFF>■■<#444444>■■■■■■■■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  10:
+    Conditions:
+    - comparevalue{v1=<skill.var.channel_progress.mul.100.round>;operator=>=;v2=10}
+    Value: '<#0096d1>[<reset><#00FFFF>■<#444444>■■■■■■■■■] <#00FFFF><skill.var.channel_progress.mul.100.round>%'
+  Default: ''
+
+# Damage Indicators
+damage_text:
+  critical:
+    Conditions:
+    - vareq{var=critical;val=true}
+    Value: '<bold><skill.prefix|<skill.var.prefix|<gradient:#ff0000:#ff3700>>><shadow:#b70000><skill.damage|0><reset><skill.affix|<skill.var.affix| >>'
+  Default: '<bold><skill.prefix|<skill.var.prefix|<#ff3700>>>%string_replaceCharacters_small-text_<skill.damage|0>%<reset><skill.affix|<skill.var.affix| >>'
+
+
+# swap: '<key:key.swapOffhand>'
+
+# rarity:
+#   - COMMON
+#   - RARE
+#   - LEGENDARY
+

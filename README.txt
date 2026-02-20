@@ -2,13 +2,10 @@ Dependencies:
 - MM Premium (latest build)
 - Crucible (For items)
 - ModelEngine (For Model Modules, optional for all others.)
-- ProtocolLib (For Crucible triggers)
 - PlaceholderAPI
   - Expansions:
     - Math
     - String
-    - Formatter
-    - Progress
 
 In MythicMobs/Config/config-skills.yml, set TargetArmorStands & TargetMarkers = true
 Then reload.

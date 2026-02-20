@@ -1,0 +1,145 @@
+mob_levelling-init:
+  Skills:
+  - setlevel{a=set;l=<caster.var.baselevel|0>+<world.var.diff|0>}
+  - skill{s=mob_levelling-updatename}
+  - skill{s=mob_levelling-roll_equipment}
+
+mob_levelling-updatename:
+  Skills:
+  - delay 1
+  - setname{name="<white>ᴴᴾ<green><caster.hp{round=1}> <white>| <reset><caster.name><reset> ˡᵛˡ<gold><caster.level>";sync=true}
+  #<white>ᴰᴹᴳ<red><caster.damage{round=1}>
+
+mob_levelling-death:
+  Skills:
+  - setvar{var=caster.mob_name;val="<caster.name> (Dead)";type=STRING;save=true}
+  - skill{s=mob_levelling-updatename}
+
+# Mob Random Equipment System
+
+mob_levelling-roll_equipment:
+  Conditions:
+  - varequals{var=caster.equipment;val=none} false
+  - varequals{var=caster.equipment;val=""} false
+  Skills:
+  - setvar{var=caster.equipment_power;val="<caster.var.equipment_power|0>+<caster.level>";type=INTEGER}
+  # - skill{s=mob_levelling-equip_sel_loop}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# mob_levelling-equip_sel_loop:
+#   Conditions:
+#   - variableInRange{var=caster.equipment_power;value=>0} orelsecast mob_levelling-equip_complete
+#   Skills:
+#   - vskill{s=<caster.var.equipment>;branch=true} 
+#   - skill{s=mob_levelling-equip_sel_loop}
+
+# mob_levelling-equip_logic:
+#   Skills:
+#   - setvar{var=caster.<skill.slot>-priority;val=0;type=INTEGER} ?!varisset{var=caster.<skill.slot>-priority}
+#   - setvar{var=skill.priority;val=<skill.priority>;type=INTEGER}
+#   - message{m="<caster.var.<skill.slot>-priority> <skill.priority>"} @PIR{r=128} ?variableequals{var=caster.debug;value="true"}
+
+#   - return @PIR{r=128} ?varinrange{var=caster.<skill.slot>-priority;value=><skill.var.priority>}
+
+#   - setvar{var=caster.<skill.slot>-item;val=<skill.item>;type=STRING}
+#   - setvar{var=caster.<skill.slot>-priority;val=<skill.priority>;type=INTEGER}
+#   - setvar{var=caster.equipment_power;val="<caster.var.equipment_power>-<skill.weight|1>";type=INTEGER}
+
+#   - message{m="set <skill.slot> to <caster.var.<skill.slot>-item> <caster.var.equipment_power>"} @PIR{r=128} ?variableequals{var=caster.debug;value="true"}
+
+# mob_levelling-equip_complete:
+#   Skills:
+#   - delay 1
+#   - message{m="Equipment Complete"} @PIR{r=128} ?variableequals{var=caster.debug;value="true"}
+#   - equip{item=<caster.var.HEAD-item|AIR> HEAD} @self 
+#   - equip{item=<caster.var.CHEST-item|AIR> CHEST} @self 
+#   - equip{item=<caster.var.LEGS-item|AIR> LEGS} @self 
+#   - equip{item=<caster.var.FEET-item|AIR> FEET} @self 
+#   - equip{item=<caster.var.HAND-item|AIR> HAND} @self 
+#   - equip{item=<caster.var.OFFHAND-item|AIR> OFFHAND} @self 
+
+# # Equipment Table Example Template
+
+# equipment-vanilla_melee:
+#   Skills:
+#   - randomskill{s=
+#     [ - skill{s=mob_levelling-equip_logic;item=wooden_sword;slot=HAND;priority=1;weight=1} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=leather_helmet;slot=HEAD;priority=1;weight=1} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=leather_chestplate;slot=CHEST;priority=1;weight=1} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=leather_leggings;slot=LEGS;priority=1;weight=1} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=leather_boots;slot=FEET;priority=1;weight=1} ],
+
+#     [ - skill{s=mob_levelling-equip_logic;item=golden_sword;slot=HAND;priority=2;weight=2} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=golden_helmet;slot=HEAD;priority=2;weight=2} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=golden_chestplate;slot=CHEST;priority=2;weight=2} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=golden_leggings;slot=LEGS;priority=2;weight=2} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=golden_boots;slot=FEET;priority=2;weight=2} ],
+
+#     [ - skill{s=mob_levelling-equip_logic;item=stone_sword;slot=HAND;priority=3;weight=3} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=chainmail_helmet;slot=HEAD;priority=3;weight=3} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=chainmail_chestplate;slot=CHEST;priority=3;weight=3} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=chainmail_leggings;slot=LEGS;priority=3;weight=3} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=chainmail_boots;slot=FEET;priority=3;weight=3} ],
+
+#     [ - skill{s=mob_levelling-equip_logic;item=iron_sword;slot=HAND;priority=4;weight=5} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=iron_helmet;slot=HEAD;priority=4;weight=5} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=iron_chestplate;slot=CHEST;priority=4;weight=5} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=iron_leggings;slot=LEGS;priority=4;weight=5} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=iron_boots;slot=FEET;priority=4;weight=5} ],
+
+#     [ - skill{s=mob_levelling-equip_logic;item=diamond_sword;slot=HAND;priority=5;weight=8} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=diamond_helmet;slot=HEAD;priority=5;weight=8} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=diamond_chestplate;slot=CHEST;priority=5;weight=8} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=diamond_leggings;slot=LEGS;priority=5;weight=8} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=diamond_boots;slot=FEET;priority=5;weight=8} ]
+
+#     } @self
+
+# equipment-vanilla_ranged:
+#   Skills:
+#   - randomskill{s=
+#     [ - skill{s=mob_levelling-equip_logic;item=bow;slot=HAND;priority=1;weight=1} ] 1,
+#     [ - skill{s=mob_levelling-equip_logic;item=leather_helmet;slot=HEAD;priority=1;weight=1} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=leather_chestplate;slot=CHEST;priority=1;weight=1} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=leather_leggings;slot=LEGS;priority=1;weight=1} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=leather_boots;slot=FEET;priority=1;weight=1} ],
+
+#     [ - skill{s=mob_levelling-equip_logic;item=golden_helmet;slot=HEAD;priority=2;weight=2} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=golden_chestplate;slot=CHEST;priority=2;weight=2} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=golden_leggings;slot=LEGS;priority=2;weight=2} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=golden_boots;slot=FEET;priority=2;weight=2} ],
+
+#     [ - skill{s=mob_levelling-equip_logic;item=chainmail_helmet;slot=HEAD;priority=3;weight=3} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=chainmail_chestplate;slot=CHEST;priority=3;weight=3} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=chainmail_leggings;slot=LEGS;priority=3;weight=3} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=chainmail_boots;slot=FEET;priority=3;weight=3} ],
+
+#     [ - skill{s=mob_levelling-equip_logic;item=iron_helmet;slot=HEAD;priority=4;weight=5} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=iron_chestplate;slot=CHEST;priority=4;weight=5} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=iron_leggings;slot=LEGS;priority=4;weight=5} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=iron_boots;slot=FEET;priority=4;weight=5} ],
+
+#     [ - skill{s=mob_levelling-equip_logic;item=diamond_helmet;slot=HEAD;priority=5;weight=8} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=diamond_chestplate;slot=CHEST;priority=5;weight=8} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=diamond_leggings;slot=LEGS;priority=5;weight=8} ],
+#     [ - skill{s=mob_levelling-equip_logic;item=diamond_boots;slot=FEET;priority=5;weight=8} ]
+#     } @self
+

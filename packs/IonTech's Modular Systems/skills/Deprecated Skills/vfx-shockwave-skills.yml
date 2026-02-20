@@ -1,0 +1,46 @@
+# Not Exactly deprecated, just handled differently now.
+# vfx-shockwave-test:
+#   Skills:
+#    - skill{s=vfx-shockwave;origin=@forward{uel=true;yo=3};debug=true} @forward{f=12;uel=true} 
+
+# vfx-shockwave-test2:
+#   Skills:
+#   - skill{s=vfx-shockwave-fire;origin=@selflocation;repeat=1;repeati=0;debug=true} @forward{f=12}
+
+# vfx-shockwave-test3:
+#   Skills:
+#   - skill{s=vfx-shockwave-fire;origin=@selflocation;repeat=20;repeati=0} @selflocation
+  
+# vfx-shockwave-fire:
+#   Skills:  
+#   - skill{s=vfx-shockwave-construct} @targetedlocation{xo=<random.float.-12to12>;yo=<random.float.-12to12>;zo=<random.float.-12to12>}
+
+# vfx-shockwave-construct:
+#   Skills: 
+#   - skill{s=vfx-shockwave;scale=<random.float.3to6>}
+  
+# vfx-shockwave:
+#   Skills:
+#   - setvar{var=debug;val=<skill.debug|false>;type=STRING} ?!varisset{var=debug}
+#   - setVarLoc{var=target_direction;val=@targetedlocation}
+#   - summon{t=vfx_base;os=false;sip=true;uty=false;utp=false;then=[
+#     - sudoskill{s=vfx-shockwave-init}
+#     ]} @origin
+
+# vfx-shockwave-init:
+#   Skills:
+#   - model{mid=vfx_arrow_impact}
+#   # Setup of instant rotation
+#   - brightness{p="";em=false;b=15;s=5}
+#   # Rotation towards target
+#   - bodyclamp{player=false;rdelay=0;rduration=0;head=false}
+#   - e:pl{p=reddust;a=1} @variableLocation{var=target_direction} ?varequals{var=debug;val=true}
+#   - rotatetowards{pitch=true;uel=false;maxyaw=360;maxpitch=360} @variableLocation{var=target_direction}
+# #  - AnimateModel{mid=<skill.type|vfx_arrow_impact>;pid="";em=false;rot=24,180,24;rel=true;ow=true;rotmode=LOCAL}
+
+#   # Model stuff
+#   - state{mid=vfx_arrow_impact;s=<skill.state|impact>;speed=<skill.speed|1>;loop=HOLD}
+#   - tint{m=vfx_arrow_impact;c=<skill.color|FFFFFF>}
+#   - scale{s=<skill.scale|1>}
+#   - delay 20
+#   - remove

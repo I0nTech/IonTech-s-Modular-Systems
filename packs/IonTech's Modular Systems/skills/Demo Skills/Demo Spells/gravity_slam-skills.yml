@@ -1,0 +1,77 @@
+# Channel, targeting an area. Upon Cast, lift enemies within, then slam them into the ground. 
+
+gravity_slam-cast:
+  Skills:
+  - skill:Spell{id=gravity_slam-exec;name=Gravity Slam;type=SPELL,VOID;
+    spellcd=4;warmup=5;
+    onChannelStart=gravity_slam-targeting_start;
+    onChannelTick=gravity_slam-targeting_tick}
+
+gravity_slam-targeting_start:
+  Skills:
+  - summon{t=target_marker-block;os=false;sip=true;then=[
+    - setvar{var=target_marker_uuid;value=<target.uuid>;type=STRING}
+    ]} @targetlocation
+
+gravity_slam-targeting_tick:
+  Skills:
+  - raytraceto{fo=true;origin=@selfEyeLocation;rw=0.4;md=32;ignorepassableblocks=true;ignoreentities=false;
+    raytraceConditions=[ - isLiving true ];
+    ls=[
+    - skill{s=gravity_slam-targeting_tracedown}
+    ]} @forward{f=32;uel=true}
+
+gravity_slam-targeting_tracedown:
+  Skills:
+  - raytraceto{fo=true;origin=@targetedLocation{yo=6};rw=1;md=32;ie=true;ignorepassableblocks=true;
+    ls=[
+    - skill{s=gravity_slam-targeting_move}
+    ]} @targetedlocation{yo=-12}
+
+gravity_slam-targeting_move:
+  Skills:
+ # - pull{to=true;origin=@origin;v=8} @UUID{u=<skill.var.target_marker_uuid>}
+  - setvarloc{var=target_loc;val=@targetedLocation}
+  - teleportto{location=@variableLocation{var=target_loc}} @UUID{u=<skill.var.target_marker_uuid>}
+  - e:pr{p=spark;a=1;points=16;radius=3} 
+
+gravity_slam-exec:
+  Skills:
+  - skill{s=[ - skill{s=gravity_slam-start} @LOT ]} @uuid{u=<skill.var.target_marker_uuid>}
+  - remove @UUID{u=<skill.var.target_marker_uuid>}
+
+gravity_slam-start:
+  Skills:
+  - e:p{p=spark;a=12;speed=2} @targetedlocation
+  - sudoskill{s=[ - skill{s=gravity_slam-apply} @self ]} @ENT{r=8}
+
+
+gravity_slam-apply:
+  TargetConditions:
+  - isliving true
+  Skills:
+  - aura{name=gravity_slam;type=stun;d=60;i=1;
+    os=[
+    - lunge{v=0;vy=3}
+    ];
+    ot=[ 
+    - e:p{p=portal;a=2;hs=0.3;vs=0.5;y=1} @selflocation
+    - velocity{m=multiply;x=1;y=0;z=1;relative=false} ?directionalVelocity{y=<-0.001} 
+    ];
+    oe=[
+    - aura{name=throw_down;d=20;i=1;desot=true;
+      os=[
+      - setvar{var=target_y;value=<target.l.y>;type=FLOAT} 
+      - lunge{v=0;vy=-5}
+      ];
+      ot=[
+       - e:p{p=reddust;a=1;color=#A020F0;hs=0.3;vs=0.5;y=1;size=3} @selflocation
+       - removeaura{aura=throw_down} ?onGround
+      ];
+      oe=[
+      - setvar{var=fall_distance;value="max(<skill.var.target_y>-<target.l.y>,0)";type=FLOAT} 
+      - setvar{var=stun_duration;value="min(<skill.var.fall_distance>/10,3)";type=FLOAT} 
+      - skill{s=stun;duration=<skill.var.stun_duration>} @self ?varinrange{var=stun_duration;val=>0.5}
+      ]}
+    ]} 
+ 

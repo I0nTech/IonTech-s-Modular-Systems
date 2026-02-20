@@ -1,0 +1,162 @@
+test-distance:
+  Skills:
+  - skill:distance{origin=@selfEyeLocation} @targetLocation
+
+test-get_location_vector:
+  Skills:
+  - skill:get_location_vector{vec=target} @selflocation
+#  - message{m=<skill.var.target_vec>} @self
+
+# skill:get_direction_vector{origin=...;vec=facing} @targetedlocation
+
+test-get_direction_vector:
+  Skills:
+  - skill:get_direction_vector{origin=@selflocation;vec=facing} @forward{f=12}
+#  - message{m=<skill.var.facing_vec>} @self
+  - e:pl{fo=true;origin=@variableLocation{var=origin_loc};p=spark;a=1} @variableLocation{var=target_loc}
+
+test-get_velocity_vector:
+  Skills:
+  - propel{v=3} @forward{f=12}
+  - aura{d=100;i=1;ot=get_velocity_vector} @self
+
+
+
+
+# Get distance between the Origin and Targeter as <skill.var.distance>
+# - skill:distance{origin=@selfEyeLocation} @targetLocation
+# = <skill.var.distance>
+distance:
+  Skills:
+  - setvarloc{var=origin_loc;val=@origin}
+  - setvarloc{var=target_loc;val=@targetedlocation}
+
+  - setvar{var=vector_x;val="<skill.var.target_loc.x>-<skill.var.origin_loc.x>";type=FLOAT}
+  - setvar{var=vector_y;val="<skill.var.target_loc.y>-<skill.var.origin_loc.y>";type=FLOAT}
+  - setvar{var=vector_z;val="<skill.var.target_loc.z>-<skill.var.origin_loc.z>";type=FLOAT}
+
+  - setvar{var=distance_vec;type=VECTOR;val=<skill.var.vector_x>,<skill.var.vector_y>,<skill.var.vector_z>}
+
+  - setvar{var=distance;type=FLOAT;
+    val="sqrt(abs((<skill.var.distance_vec.x>)^2+(<skill.var.distance_vec.y>)^2+(<skill.var.distance_vec.z>)^2))"}
+
+# Get horizontal distance between the Origin and Targeter as <skill.var.distance_horizontal>
+distance-horizontal:
+  Skills:
+  - setvarloc{var=origin_loc;val=@origin}
+  - setvarloc{var=target_loc;val=@targetedlocation}
+
+  - setvar{var=vector_x;val="<skill.var.target_loc.x>-<skill.var.origin_loc.x>";type=FLOAT}
+  - setvar{var=vector_z;val="<skill.var.target_loc.z>-<skill.var.origin_loc.z>";type=FLOAT}
+
+  - setvar{var=distance_vec;type=VECTOR;val=<skill.var.vector_x>,0,<skill.var.vector_z>}
+
+  - setvar{var=distance_horizontal;type=FLOAT;val="sqrt(abs((<skill.var.distance_vec.x>)^2+(<skill.var.distance_vec.z>)^2))"}
+
+# Get vertical distance between the Origin and Targeter as <skill.var.distance_vertical>
+distance-vertical:
+  Skills:
+  - setvarloc{var=origin_loc;val=@origin}
+  - setvarloc{var=target_loc;val=@targetedlocation}
+
+  - setvar{var=vector_y;val="<skill.var.target_loc.y>-<skill.var.origin_loc.y>";type=FLOAT}
+  - setvar{var=distance_vertical;type=FLOAT;val="<skill.var.vector_y>"}
+
+# Get the velocity of the targeted entity. Needs to run at least twice to return a velocity.
+# - aura{d=100;i=1;ot=get_velocity_vector} @self
+# = <skill.var.speed>
+get_velocity_vector:
+  Skills:
+  - skill:get_location_vector{vec=prior} @LOT ?!varisset{var=prior_vec}
+  - skill:get_location_vector{vec=current} @LOT #?!varisset{var=prior_location_vec}
+  - setvar{var=velocity;val=<skill.var.current_vec.sub.<skill.var.prior_vec>>;t=VECTOR}
+  
+  # - setvarloc{var=player_velocity_loc;val=@selflocation{xo=<skill.var.player_velocity.x>;yo=<skill.var.player_velocity.y>;zo=<skill.var.player_velocity.z>}}
+  # - e:pl{fo=true;origin=@selflocation;p=spark;a=1} @variableLocation{var=player_velocity_loc}
+
+  - setvar{var=speed;val=sqrt(abs((<skill.var.velocity.x>)^2+(<skill.var.velocity.y>)^2+(<skill.var.velocity.z>)^2));t=FLOAT}
+
+  - skill:get_location_vector{vec=prior} @variableLocation{var=current_loc} 
+
+# Get the normalized Vector that faces from the Origin to the Targeter returning <skill.vec|direction>_vec
+# - skill:get_direction_vector{origin=@selflocation;vec=facing} @forward{f=12} 
+# = <skill.var.facing_vec>
+get_direction_vector:
+  Skills:
+  - skill:get_location_vector{vec=origin} @origin
+  - skill:get_location_vector{vec=target} @targetedlocation
+
+  - setvar{var=vec;val=<skill.vec|direction>;type=STRING}
+  - setvar{var=<skill.var.vec>_vec;val=<skill.var.target_vec.sub.<skill.var.origin_vec>.normalized>;t=VECTOR}
+
+  
+# Get the location of the provided Targeter as a Vector returning <skill.vec|location>_vec
+# skill:get_location_vector{var=target} @targetlocation
+# = <skill.var.location_vec>
+get_location_vector:
+  Skills:
+  - setvar{var=vec;val=<skill.vec|location>;type=STRING}
+
+  - setvarloc{var=<skill.var.vec>_loc;val=@targetedlocation}
+  - setvar{var=<skill.var.vec>_vec;val=<skill.var.<skill.var.vec>_loc.coords>;t=VECTOR}
+
+
+
+
+# Old Vector Code. 99% insanity, please do not replicate or use. 
+  # - setvar{var=distance;type=FLOAT;
+  #   val=<skill.var.distance_vec.x.abs.tofloat>}
+  ## - message{m="distance_vec <skill.var.distance_vec> distance <skill.var.distance>"} @self 
+
+  # - e:pl{p=reddust;a=1;fo=true} 
+
+  ## - message{m="Origin <skill.var.origin_loc.x>,<skill.var.origin_loc.y>,<skill.var.origin_loc.z>"} @self 
+  ## - message{m="Target <skill.var.target_loc.x>,<skill.var.target_loc.y>,<skill.var.target_loc.z>"} @self 
+  ## - message{m=Distance <skill.var.distance>} @self 
+
+
+
+# vector-x:
+#   Skills:
+#   - setvar{var=string;val="%string_replaceCharacters_cleanup_<skill.location>%";type=STRING}
+#   - setvar{var=firstindex;val="%math_0_{string_indexOf_<skill.var.string>_<&cm>}+1%"}
+#   - setvar{var=lastindex;val="%string_lastIndexOf_<skill.var.string>_<&cm>%"}
+#   - setvar{var=string;val="%string_substring_<skill.var.firstindex>,<skill.var.lastindex>_<skill.var.string>%";type=STRING}
+# ##  - message{m="first <skill.var.firstindex> last <skill.var.lastindex> <skill.var.string> <skill.location>"} @server
+#   - setvar{var=lastindex;val="%string_lastIndexOf_<skill.var.string>_<&cm>%"}
+#   - setvar{var=<skill.name>_x;val="%string_substring_0,<skill.var.lastindex>_<skill.var.string>%";type=FLOAT}
+#  ## - message{m="first <skill.var.firstindex> last <skill.var.lastindex> <skill.var.string>"} @server
+  
+# vector-y:
+#   Skills:
+#   - setvar{var=string;val="%string_replaceCharacters_cleanup_<skill.location>%";type=STRING}
+#   - setvar{var=firstindex;val="%math_0_{string_indexOf_<skill.var.string>_<&cm>}+1%"}
+#   - setvar{var=lastindex;val="%string_lastIndexOf_<skill.var.string>_<&cm>%"}
+#   - setvar{var=string;val="%string_substring_<skill.var.firstindex>,<skill.var.lastindex>_<skill.var.string>%";type=STRING}
+#  ## - message{m="1 first <skill.var.firstindex> last <skill.var.lastindex> <skill.var.string>"} @self
+#   - setvar{var=firstindex;val="%math_0_{string_indexOf_<skill.var.string>_<&cm>}+1%"}
+#  # #- message{m="2 first <skill.var.firstindex> last <skill.var.lastindex> <skill.var.string>"} @self
+#   - setvar{var=<skill.name>_y;val="%string_substring_<skill.var.firstindex>,<skill.var.lastindex>_<skill.var.string>%";type=FLOAT}
+#  # #- message{m="<skill.var.string>"} @self
+
+# vector-z:
+#   Skills:
+#   - setvar{var=string;val="%string_replaceCharacters_cleanup_<skill.location>%";type=STRING}
+#   - setvar{var=lastindex;val="%math_0_{string_lastIndexOf_<skill.var.string>_<&cm>}+1%"}
+#   - setvar{var=<skill.name>_z;val="%string_substring_<skill.var.lastindex>_<skill.var.string>%";type=FLOAT}
+  
+
+# distance-origin_to_target:
+#   Skills:
+#   - setvar{var=debug;val=<skill.debug|false>;type=STRING}
+
+#   - skill{s=origin-setloc} @origin
+#   - skill{s=target-setloc} @targetedlocation
+
+#   - setvar{var=vector_x;val="<skill.var.target_loc.x>-<skill.var.origin_loc.x>";type=FLOAT}
+#   - setvar{var=vector_y;val="<skill.var.target_loc.y>-<skill.var.origin_loc.y>";type=FLOAT}
+#   - setvar{var=vector_z;val="<skill.var.target_loc.z>-<skill.var.origin_loc.z>";type=FLOAT}
+
+#   - setvar{var=distance;val="sqrt(abs(<skill.var.vector_x>^2+<skill.var.vector_y>^2+<skill.var.vector_z>^2))";type=FLOAT}
+
+# #  - message{m=<skill.var.vector_x>,<skill.var.vector_y>,<skill.var.vector_z> Distance <skill.var.distance>} @self ?varequals{var=debug;val=true}

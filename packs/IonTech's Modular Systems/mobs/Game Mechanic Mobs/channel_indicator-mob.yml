@@ -1,0 +1,22 @@
+channel_indicator:
+  Type: text_display
+  Display: ''
+  Faction: SERVER
+  DisplayOptions:
+    Text: ""
+    LineWidth: 100
+    Billboard: CENTER
+    Scale: 1,1,1
+    Translation: 0,0.5,0
+    BlockLight: 15
+    SkyLight: 15
+  Options:
+    Marker: true
+    Invisible: true
+    HasGravity: false
+  Variables:
+    spell_name: ''
+    channel_duration: ''
+  Skills:
+  - remove @self ~onTimer:10 ?!hasParent 
+  - remove @self ~onDismounted 

@@ -1,0 +1,138 @@
+# Note: DROP input returns LEFT right now. I need to fix that.
+
+click_combo:
+  Conditions:
+  - hasaura{aura=clickcombo-input} false
+  - hasaura{aura=clickcombo-cd} false
+  - hasaura{name=stun} castinstead stun-oncast
+  Skills:
+  - skill{s=click_combo-start;branch=true}
+
+click_combo-start:
+  Skills:
+  - setvar{var=duration;val="<skill.duration|5>*20";type=FLOAT}
+  - setvar{var=type;val=<skill.type|NORMAL>;type=STRING}
+
+  - setvar{var=caster.input;val="";type=STRING}
+  - setvar{var=caster.display_input;val="";type=STRING}
+  - setvar{var=caster.input_counter;val=0;type=INTEGER}
+  
+  - switch{condition=varequals{var=type;val=<case>};
+    cases=
+      case QUICK=[ - skill{s=click_combo-quick} ]
+      case WYNN_WAND=[ - skill{s=click_combo-wynn_wand} ]
+      case WYNN_WEAPON=[ - skill{s=click_combo-wynn_weapon} ]
+      case DEFAULT=[ - skill{s=click_combo-normal} ]
+    }
+
+click_combo-wynn_wand:
+  Skills:
+  - setvar{var=caster.input_counter_max;val=3;type=INTEGER}
+ # - sendtitle{title="";subtitle="「」「」「」";d=200}
+  - skill{s=click_combo-input;click=r}
+  
+  - aura{auraname=clickcombo-input;d=<skill.var.duration>;ow=true;bartimer=false;
+    os=click_combo-checkinput;
+    ot=click_combo-checkinput}
+
+click_combo-wynn_weapon:
+  Skills:
+  - setvar{var=caster.input_counter_max;val=3;type=INTEGER}
+ # - sendtitle{title="";subtitle="「」「」「」";d=200}
+  - skill{s=click_combo-input;click=l}
+  
+  - aura{auraname=clickcombo-input;d=<skill.var.duration>;ow=true;bartimer=false;
+    os=click_combo-checkinput;
+    ot=click_combo-checkinput}
+  
+click_combo-normal:
+  Skills:
+  - setvar{var=caster.input_counter_max;val=3;type=INTEGER}
+  - sendtitle{title="";subtitle="「」「」「」";d=200}
+  
+  - aura{auraname=clickcombo-input;d=<skill.var.duration>;ow=true;bartimer=false;
+    os=click_combo-checkinput;
+    ot=click_combo-checkinput}
+  
+click_combo-quick:
+  Skills:
+  - setvar{var=caster.input_counter_max;val=2;type=INTEGER}
+  - sendtitle{title="";subtitle="「」「」";d=200}
+  
+  - skill{s=click_combo-input;click=swap}
+  - aura{auraname=clickcombo-input;d=<skill.var.duration>;ow=true;bartimer=false;
+    os=click_combo-checkinput;
+    ot=click_combo-checkinput}
+  
+click_combo-sendinput:
+  Conditions:
+  - hasaura{aura=clickcombo-input}
+  Skills: 
+  - CancelEvent{sync=true}
+  - setvar{var=caster.input_key;val=<skill.key>;type=STRING}
+  - message{m=<caster.var.input_key>} ?varequals{var=debug;val=true}
+  
+click_combo-checkinput:
+  Conditions:
+  - hasaura{aura=stun} castinstead click_combo-force_end
+  Skills: 
+  - switch{condition=varequals{var=caster.input_key;val=<case>};
+    cases=
+      case DROP=[ - skill{s=click_combo-readinput;click=drop} ]
+      case LEFT=[ - skill{s=click_combo-readinput;click=l} ]
+      case RIGHT=[ - skill{s=click_combo-readinput;click=r} ]
+      case SWAP=[ - skill{s=click_combo-readinput;click=swap} ]
+      case DEFAULT=[ - skill{s=click_combo-readinput;click=<caster.var.input_key>} ]
+    } ?varisset{var=caster.input_key}
+#      - potion{t=HASTE;d=10;l=10;p=false;i=false;a=false}
+
+click_combo-readinput:
+  Skills: 
+  - skill{s=click_combo-input}
+  - variableUnset{var=caster.input_key}
+
+click_combo-input:
+  Skills:
+  - sound{s=block.lever.click;v=0.5;p="1+<caster.var.input_counter>/20";audience=self}
+  
+  - setvar{var=caster.input;val="<caster.var.input><skill.click>";type=STRING}
+  - setvar{var=caster.display_input;val="<caster.var.display_input>%string_replaceCharacters_small-text_「<skill.click>」%";type=STRING}
+  - setvar{var=caster.input_counter;val="<caster.var.input_counter>+1";type=INTEGER}
+  
+  - sendtitle{title="";subtitle="<caster.var.display_input>";d=200;delay=1}
+  - aura{auraname=clickcombo-cd;d=2;ow=true;bartimer=false}
+  - skill{s=click_combo-executeskill}
+ 
+click_combo-executeskill:
+  Conditions:
+  - varequals{var=caster.input_counter;val=<caster.var.input_counter_max>}
+  Skills:
+  - removeaura{auraname=clickcombo-input}
+ 
+  - sound{s=entity.experience_orb.pickup;v=0.5;p=1;audience=self}
+  - skill{s=click_combo-input;click=+down} ?crouching ?varequals{var=type;val=QUICK}
+ 
+  - sendtitle{title="";subtitle="<#65FE08><caster.var.display_input>";d=3;delay=1}
+ # - message{m="<caster.var.input> <skill.<caster.var.input>> <skill.var.type>"} @self
+  - vskill{s=<skill.<caster.var.input>|click_combo-invalid>;branch=true;sync=false} @self
+  - variableUnset{var=caster.input_counter;delay=1}
+  - variableUnset{var=caster.input_counter_max}
+  - variableUnset{var=caster.input}
+  - variableUnset{var=caster.display_input;delay=1}
+  
+click_combo-invalid:
+  Skills:
+  - message{m="Invalid Input!"} @self
+  - sendtitle{title="";subtitle="<#EE4B2B><caster.var.display_input>";d=10;delay=1}
+
+click_combo-force_end:
+  Conditions:
+  - hasaura{aura=clickcombo-input} true
+  Skills:
+  - sendtitle{title="";subtitle="<#EE4B2B>%string_replaceCharacters_small-text_「Interrupted!」%";d=10;delay=1}
+  - removeaura{auraname=clickcombo-input}
+  
+  - variableUnset{var=caster.input}
+  - variableUnset{var=caster.display_input}
+  - variableUnset{var=caster.input_counter}
+  - variableUnset{var=caster.input_counter_max}

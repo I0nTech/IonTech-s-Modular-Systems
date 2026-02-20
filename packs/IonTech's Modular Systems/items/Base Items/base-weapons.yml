@@ -1,0 +1,152 @@
+weapon:
+  Options:
+    PreventDropping: false
+    KeepOnDeath: false
+    Unbreakable: true
+    Placeable: false
+  Hide:
+    - UNBREAKABLE
+    - DYE
+
+melee:
+  Template: weapon
+  Id: GOLDEN_SWORD
+
+bow:
+  Template: weapon
+  Id: BOW
+
+wand:
+  Template: weapon
+  Id: STICK
+
+cyclewand:
+  Template: weapon
+  Id: STICK
+  Display: "Base Cycle Wand"
+  NBT:
+    activespell: int/1
+    maxspells: int/3
+  Skills:
+    - skill{s=spell-cycle-cast;branch=true} @self ~onSwing
+    - skill{s=spell-cycle-right;branch=true} @self ~onUse ?!isCrouching
+    - skill{s=spell-cycle-left;branch=true} @self ~onUse ?isCrouching
+
+click_combo-normal:
+  Template: weapon
+  Id: STICK
+  Display: "Normal Click Combo"
+  Lore: "RIGHT-CLICK to Cast spells."
+  Slot: HAND
+  Options:
+    PreventDropping: true
+  Skills:
+  - skill{s=[ 
+    - aura{name=clickcombo-left_cd;d=2;ow=true;bartimer=false} 
+    - skill{s=click_combo-sendinput;key=DROP} 
+    ]} @self ~onDropitem 
+  - skill{s=[ - skill{s=click_combo-sendinput;key=LEFT;delay=2} ]} @self ~onSwing ?!hasaura{aura=clickcombo-left_cd}
+  - skill{s=[ - skill{s=click_combo-sendinput;key=RIGHT} ]} @self ~onUse
+
+  - CancelEvent{sync=true} @self ~onPressF
+  - skill{s=click_combo-sendinput;key=SWAP} @self ~onPressF
+  - skill{s=click_combo-force_end} @self ~onUnHeld
+
+click_combo-quick:
+  Template: weapon
+  Id: STICK
+  Display: "Quick Click Combo"
+  Lore: "SWAP to Quick-cast spells."
+  Slot: HAND
+  Options:
+    PreventDropping: true
+  Hide:
+    - UNBREAKABLE
+    - DYE
+  Skills:
+  - skill{s=[ 
+    - aura{name=clickcombo-left_cd;d=2;ma=true;bartimer=false} 
+    - skill{s=click_combo-sendinput;key=DROP} ]} 
+    @self ~onDropitem 
+  - CancelEvent{sync=true} @self ~onPressF
+  - skill{s=click_combo-sendinput;key=SWAP} @self ~onPressF
+  - skill{s=click_combo-force_end} @self ~onUnHeld
+  - skill{s=click_combo-sendinput;key=LEFT;delay=2} @self ~onSwing ?!hasaura{aura=clickcombo-left_cd}
+  - skill{s=click_combo-sendinput;key=RIGHT} @self ~onUse
+ # - CancelEvent{sync=true} @self ~onPressQ
+   
+
+nbt_wand-quick:
+  Id: STICK
+  Template: click_combo-quick
+  Display: "NBT Driven Click Combo Wand"
+  UseCooldown:
+    CooldownGroup: wand # write only in lowercase!
+    CooldownSeconds: 1
+  NBT:
+    spells:
+      LMB:
+        name:
+        meta: 
+      RMB:
+        name:
+        meta:
+      DROP:
+        name:
+        meta: 
+      SWAPL:
+        name:
+        meta: 
+      SWAPR:
+        name:
+        meta: 
+      SWAPDROP: 
+        name:
+        meta: 
+      SWAPSWAP:
+        name:
+        meta: 
+  Lore:
+    - "<#C0C0C0>Spells:"
+    - "&r&8» <#C0C0C0>[<#00BCFF>LMB<#C0C0C0>] <white><caster.item.nbt.spells.LMB.name|<dark_gray>Unset>"
+    - "&r&8» <#C0C0C0>[<#00BCFF>RMB<#C0C0C0>] <white><caster.item.nbt.spells.RMB.name|<dark_gray>Unset>"
+    - "&r&8» <#C0C0C0>[<#00BCFF>DROP<#C0C0C0>] <white><caster.item.nbt.spells.DROP.name|<dark_gray>Unset>"
+    # - ""
+    # - "&6SWAP &r&8» <#DC143C>%string_replaceCharacters_small-text_Quick-Cast%"
+    # - "<i><gray>Enter Quick-Casting mode."
+    # - "<i><gray>Your next input will cast"
+    # - "<i><gray>a Spell."
+    - ""
+    - "<#C0C0C0>Click Combos:"
+    - "&r&8» <#C0C0C0>[<#00BCFF>SWAP+LEFT<#C0C0C0>] <white><caster.item.nbt.spells.SWAPL.name>"
+    - "&r&8» <#C0C0C0>[<#00BCFF>SWAP+RIGHT<#C0C0C0>] <white><caster.item.nbt.spells.SWAPR.name>"
+    - "&r&8» <#C0C0C0>[<#00BCFF>SWAP+DROP<#C0C0C0>] <white><caster.item.nbt.spells.SWAPDROP.name>"
+    - "&r&8» <#C0C0C0>[<#00BCFF>SWAP+SWAP<#C0C0C0>] <white><caster.item.nbt.spells.SWAPSWAP.name>"
+  Skills:
+    - vskill{s=<caster.item.hand.nbt.spells.LMB.meta>;delay=0} @self ~onSwing ?!hasaura{aura=clickcombo-input} ?!hasaura{aura=clickcombo-left_cd}
+    - vskill{s=<caster.item.hand.nbt.spells.RMB.meta>} @self ~onUse ?!hasaura{aura=clickcombo-input}
+    - vskill{s=<caster.item.hand.nbt.spells.DROP.meta>} @self ~onPressQ ?!hasaura{aura=clickcombo-input}
+    - updatelore{s=HAND} @self ~onHold 
+
+    - skill:click_combo{type=QUICK; 
+      SWAPL=[ - vskill{s=<caster.item.hand.nbt.spells.SWAPL.meta>} ]; 
+      SWAPR=[ - vskill{s=<caster.item.hand.nbt.spells.SWAPR.meta>} ]; 
+      SWAPDROP=[ - vskill{s=<caster.item.hand.nbt.spells.SWAPDROP.meta>} ]; 
+      SWAPSWAP=[ - vskill{s=<caster.item.hand.nbt.spells.SWAPSWAP.meta>} ]} @self ~onPressF
+
+  
+click_combo-wynn:
+  Template: weapon
+  Id: STICK
+  Display: "Wynn Wand Click Combo"
+  Lore: "RIGHT-CLICK to Cast spells."
+  Slot: HAND
+  Options:
+    PreventDropping: true
+  Hide:
+    - UNBREAKABLE
+    - DYE
+  Skills:
+    - skill{s=[ - skill{s=click_combo-sendinput;key=LEFT;delay=0} ]} @self ~onSwing
+    - skill{s=[ - skill{s=click_combo-sendinput;key=RIGHT;delay=0} ]} @self ~onUse
+    - skill{s=click_combo-force_end} @self ~onUnHeld

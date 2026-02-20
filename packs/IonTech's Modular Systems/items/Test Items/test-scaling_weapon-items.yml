@@ -1,0 +1,35 @@
+test-scaling_weapon:
+  Id: STICK
+  Display: 'Scaling Weapon'
+  Lore:
+  - "<gray>Weapon that <white>Scales</white> with Player Attributes"  
+  Attributes:
+    MainHand:
+      AttackSpeed: -0.625 MULTIPLY_BASE
+      Damage: 5 MULTIPLY
+
+test-stat_item:
+  Id: PAPER
+  Display: 'Stat Item'
+  Lore:
+  - "<gray>Item that gives <white>Bonus Stats</white> when held in Inventory"
+  Skills:
+  - skill{s=[
+    - message{m='&aYou feel empowered by the Stat Item!'}
+    - vskill{s=blazing_sun-exec}
+    ]} @self ~onPickup 
+  - skill{s=[
+     - message{m='&cYou feel less empowered without the Stat Item!'}
+    - vskill{s=modifier-remove;name="Blazing Sun"}
+    ]} @self ~onDropitem 
+
+
+# test-stat_armor:
+#   Id: DIAMOND_CHESTPLATE
+#   Display: 'Stat Chestplate'
+#   Lore:
+#   - "<gray>Item that gives <white>Bonus Stats</white> when Worn as Armor"
+#   Skills:
+#   - message{m='&aYou feel empowered by the Stat Item!'} @self ~onEquip 
+#   - message{m='&cYou feel less empowered without the Stat Item!'} @self ~onUnequip  
+

@@ -1,0 +1,64 @@
+# Note: No idea if this actually works. Never used it. 
+mortar:
+  Skill: mortar-exec
+
+mortar-exec:
+  Skills:
+  - skill{s=mortar-start;origin=@selfEyeLocation} @targetlocation
+
+mortar-start:
+  Skills:
+  - skill{s=mortar-calculate}
+  - skill{s=mortar-debug}
+  - return ?variableEquals{var=theta;value="NaN"}
+  - skill{s=mortar-fire}
+
+mortar-calculate:
+  Skills:
+  - skill{s=distance-horizontal} #Calculate the horizontal distance
+  - skill{s=distance-vertical} #Calculate the vertical distance
+
+  #Projectile Velocity, (I made the projectile automatically take this value)
+  - setvar{var=mortar_velocity;v=max((abs(<skill.var.distance_vertical>)+<skill.var.distance_horizontal>)/2,40);type=FLOAT} 
+  - setvar{var=vproj;v=<skill.var.mortar_velocity>;type=FLOAT} #the m/s equivalent of the speed, well, luckily that is the same (still there for testing purposes)
+
+  #the gravity you put in the projectile, this is NOT automatically taken in the projectile, values of 0.5 are earthlike but this script/config works on any planet. 
+  - setvar{var=mortar_gravity;v=3;type=FLOAT} 
+  - setvar{var=gactual;v=<skill.var.mortar_gravity>*20;type=FLOAT}  #from minecrafts value to real worlds m/s^2
+
+  - setvar{var=theta;v=atan((<skill.var.vproj>^2-sqrt(<skill.var.vproj>^4-<skill.var.gactual>*(<skill.var.gactual>*<skill.var.distance_horizontal>^2+2*<skill.var.distance_vertical>*<skill.var.vproj>^2)))/(<skill.var.gactual>*<skill.var.distance_horizontal>));type=FLOAT} #this is the trajectory formula I posted a while back
+  
+
+
+mortar-debug:
+  Skills:
+  # - message{m=&CNaN} @world ?variableEquals{var=theta;value="NaN"}
+  # - message{m=&C"vProj=<skill.var.vproj>"} @world ?variableEquals{var=theta;value="NaN"}
+  # - message{m=&C"distance_vertical=<skill.var.distance_vertical>"} @world ?variableEquals{var=theta;value="NaN"}
+  # - message{m=&C"distance_horizontal=<skill.var.distance_horizontal>"} @world ?variableEquals{var=theta;value="NaN"}
+  # - message{m=&C"gActual=<skill.var.gactual>"} @world ?variableEquals{var=theta;value="NaN"}
+  # - message{m=&C"taTotal=<skill.var.theta>"} @world ?variableEquals{var=theta;value="NaN"}
+
+  # - message{m=&Acheck_range} @world ?!variableEquals{var=theta;value="NaN"}
+  # - message{m=&A"vProj=<skill.var.vproj>"} @world ?!variableEquals{var=theta;value="NaN"}
+  # - message{m=&A"distance_vertical=<skill.var.distance_vertical>"} @world ?!variableEquals{var=theta;value="NaN"}
+  # - message{m=&A"distance_horizontal=<skill.var.distance_horizontal>"} @world ?!variableEquals{var=theta;value="NaN"}
+  # - message{m=&A"gActual=<skill.var.gactual>"} @world ?!variableEquals{var=theta;value="NaN"}
+  # - message{m=&A"taTotal=<skill.var.theta>"} @world ?!variableEquals{var=theta;value="NaN"}
+
+#this all together gives a projectile that fires in an upwards arc and never misses a stationary target.
+mortar-fire:
+  Skills:
+  - setvar{var=slope;v="tan(<skill.var.theta>)-<skill.var.distance_vertical>/<skill.var.distance_horizontal>";t=FLOAT}
+  - projectile{fo=true;sfo=0;syo=0;vO=<skill.var.slope>;hnp=true;
+    g=3;v=<skill.var.mortar_velocity>;hR=0.5;vR=0.5;mr=100;
+    onTick=[ - e:p{p=flame;a=1} ];
+    onEnd=mortar-hit}
+
+#    b=DISPLAY;scale=1,1,1;material=ANVIL;byo=-1;
+
+mortar-hit:
+  Skills:
+  - e:p{p=explosion_large;a=1}
+  - sound{s=entity.generic.explode;v=1;p=1}
+  - damage{a=12;pi=true} @ENO{r=3}

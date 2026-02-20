@@ -1,0 +1,296 @@
+# --- Methodology ---
+# Raw Inputs -> List, Map -> Iterate over List, Map Values by Key to List -> Filter & Sort List -> Execute
+
+# Parameters
+# - modifier_name: The provided name of the Modifier. Used for identification. 
+# - o: The actual metaskill to append (CANNOT BE INLINE. Refer to a skill id.)
+# - priority: The priority of the Modifier.
+#   Determines the order that modifiers trigger in. Higher Priority trigger first. 
+#   - 1: LOWEST
+#   - 2: LOW
+#   - 3: MEDIUM
+#   - 4: HIGH
+#   - 5: SPELL SELECT
+#   - 6: SPELL EXECUTION
+#   - 7: MONITOR
+# - trigger: The Trigger required for the Modifier to activate. 
+#   - Default: PRECAST
+# - stacks: Additional numerical parameter. Can be used to scale variables within triggered metaskills. 
+#   By default, stacks will not override unless stacks (new) > stacks (old).
+
+  # Map Format (old): modifier_name=(operation,type,trigger,priority)
+  # Map Format (new): operation=(modifier_name,trigger,priority,stacks,tags)
+
+  #- skill:modifier-trigger{trigger=CAST,tag=sometag,sometag2} @self
+  #- skill:modifier{modifier_name="Blazing Sun";o=modifier-blazing_sun;tags=sometag;stacks=100} @self
+
+  # modifier-remove can remove modifiers by modifier_name. 
+  # It can remove multiple modifiers with the same modifier_name. 
+  # if an operation is provided, it will remove the modifier of that operation. 
+  # If stacks are enabled, it removes x stacks of that modifier. 
+
+
+# --- Modifier Add / Remove System ---
+
+# Add / Initialize Modifiers.
+# Map Format (new): operation=(modifier_name,trigger,priority,stacks,tags)
+
+# key = operation (<skill.o>)
+# modifier_name = modifier_map.<skill.var.operation>.0 (<skill.modifier_name>)
+# trigger = modifier_map.<skill.var.operation>.1 (<skill.trigger>)
+# priority = modifier_map.<skill.var.operation>.2 (<skill.priority>)
+# stacks = modifier_map.<skill.var.operation>.3 (<skill.stacks>)
+# tags = modifier_map.<skill.var.operation>.4 (<skill.tags>) # Not yet Implemented.
+
+# Add a Modifier
+modifier-init:
+  Skills:
+  # - return ?comparevalue{v1=<skill.modifier_name|>;op===;v2='';t=STRING}
+  - setvar{var=operation;val=<skill.o|<skill.operation|[]>>;type=METASKILL}
+
+  - setvar{var=caster.modifier_list;type=LIST;val=<skill.var.operation>} ?!varisset{var=caster.modifier_list}
+  - setvar{var=caster.modifier_map;type=MAP;val=<skill.var.operation>=<skill.modifier_name|UNSET>,<skill.trigger|PRECAST>,<skill.priority|1>,<skill.stacks|1>} ?!varisset{var=caster.modifier_map}
+
+  # - variableSubtract{var=caster.modifier_map.<skill.var.operation>.3;amount=1} @self ?comparevalues{v1=<caster.var.modifier_map.get.3>;operator===;v2=<skill.modifier_name>}
+
+# <caster.var.modifier_map.<skill.var.operation>.tostring.replace.:.,.tolist.get.3>
+  # - message{m=Stacks <caster.var.modifier_map.<skill.var.operation>> <caster.var.modifier_map.<skill.var.operation>.tostring.replace.:.,.tolist.get.3>} @self
+  - variableadd{var=caster.modifier_list;amount=<skill.var.operation>} @self ?comparevalues{v1=<caster.var.modifier_list.contains.<skill.var.operation>>;operator===;v2=false}
+
+  - subtractVariable{var=caster.modifier_map;val=<skill.var.operation>} @self ?comparevalues{v1=<caster.var.modifier_map.<skill.var.operation>.tostring.replace.:.,.tolist.get.3>;operator=!=;v2=<skill.stacks|1>} 
+  - variableadd{var=caster.modifier_map;amount=<skill.var.operation>=<skill.modifier_name|UNSET>,<skill.trigger|PRECAST>,<skill.priority|1>,<skill.stacks|1>} @self
+  
+  - skill{s=[
+    - subtractVariable{var=caster.modifier_list;val=<caster.var.modifier_list.indexof.<skill.var.operation>>}
+    - subtractVariable{var=caster.modifier_map;val=<skill.var.operation>}
+    ]} @self ?comparevalues{v1=<caster.var.modifier_map.<skill.var.operation>.tostring.replace.:.,.tolist.get.3>;operator===;v2=0} 
+
+#  - message{m="Added Modifier <caster.var.modifier_list> <newline><caster.var.modifier_map.get.<skill.var.operation>>"} @self 
+
+metaspell_add:
+  Skill: modifier-add
+
+modifier:
+  Skill: modifier-add
+
+modifier-add:
+  Skill: modifier-init
+
+# Remove a Modifier by Name
+modifier-remove:
+  Skills:
+  - setvar{var=remove_modifier_name;val=<skill.modifier_name|UNSET>;type=STRING}
+  - return ?varequals{var=remove_modifier_name;val=UNSET} 
+  - foreachvalue{values=<caster.var.modifier_list>;s=modifier-remove_list}
+  - foreachvalue{values=<caster.var.modifier_map>;s=modifier-remove_map}
+
+modifier-remove_list:
+  Skills:
+  # Check if value matches modifier_name
+  # - message{m=List <skill.value> index <caster.var.modifier_list.indexof.<skill.value>> Map modifier_Name <caster.var.modifier_map.get.<skill.value>.tolist.0>} @self
+  - return ?comparevalue{v1=<caster.var.modifier_map.get.<skill.value>.tolist.0>;op=!=;v2=<skill.modifier_name>}
+#  - message{m="List Removing <skill.value> map modifier_name <caster.var.modifier_map.get.<skill.value>.tolist.0>"} @self ?varequals{var=debug;val=true}
+  - subtractVariable{var=caster.modifier_list;val=<caster.var.modifier_list.indexof.<skill.value>>} 
+
+
+modifier-remove_map:
+  Skills:
+  - setvar{var=map_data;val=<skill.value>;type=LIST}
+  - return ?comparevalue{v1=<skill.var.map_data.0>;op=!=;v2=<skill.var.remove_modifier_name>}
+#  - message{m="Map Removed <skill.key> modifier_Name <skill.var.map_data.0>"} @self ?varequals{var=debug;val=true}
+  - subtractVariable{var=caster.modifier_map;val=<skill.key>} 
+  # - subtractVariable{var=caster.modifier_list;val=<caster.var.modifier_list.indexof.<skill.value>>}
+  # - message{m="Removed <skill.modifier_name> Index <caster.var.modifier_list.indexof.<skill.modifier_name>>"} @self ?varequals{var=debug;val=true}
+  # - subtractVariable{var=caster.modifier_map;val=<skill.modifier_name>}
+  # - subtractVariable{var=caster.modifier_list;val=<caster.var.modifier_list.indexof.<skill.modifier_name>>}
+
+# Clear all modifiers
+modifier-clear:
+  Skills:
+#  - message{m="Clearing <newline><caster.var.modifier_list|empty><newline><caster.var.modifier_map|empty>"} @self
+  - varUnset{var=caster.modifier_list} @self
+  - varUnset{var=caster.modifier_map} @self
+
+# --- Modifier Trigger System ---
+# Trigger Modifier Metaskills based on provided trigger type.
+# Inputs: Trigger, Update, Execute 
+modifier-trigger:
+  Skills:
+  # - setvar{var=debug;val=true;type=STRING}
+  - varUnset{var=execution_order} @self
+  # - setvar{var=temp_trigger;val=<skill.trigger|PRECAST>;type=STRING}
+#  - message{m=<newline>} @self ?varequals{var=debug;val=true}
+  - return ?!varisset{var=caster.modifier_list} # Return if caster Modifer Map is Empty
+  - skill{s=modifier-parse_list} 
+  - skill{s=modifier-execute}
+
+# Sort and aggregate from Metaspells Map, if:
+#  skill.<skill.trigger>-modifiers is not set or skill.update == true
+#  modifier list size > 0 
+# This should only run once per skilltree, per trigger (essentially caching sorted list upon first run)
+modifier-parse_list:
+  Conditions:
+  - ( varisset{var=skill.<skill.trigger|PRECAST>-modifiers} false || comparevalues{v1=<skill.update|false>;operator===;v2=true} ) true
+  - comparevalues{v1=<caster.var.modifier_list.size>;operator===;v2=0} false
+  Skills:
+  # Filter Modifier Map by provided Trigger
+#  - message{m=Sorting} @self ?varequals{var=debug;val=true}
+
+  - foreachvalue{values=<caster.var.modifier_list>;s=modifier-parse_list-trigger_check} @self
+  
+  - return ?!varisset{var=execution_order} # Return if filter returns no results. 
+#  - message{m=Pre-Sort <skill.var.execution_order> Skills <skill.var.execution_order.size>} @self ?varequals{var=debug;val=true}
+
+  # Sort Execution Order list by Modifier Priority
+  - skill{s=modifier-insertion_sort;list=<skill.var.execution_order>} @self
+
+  # Set Final Output
+  - setvar{var=<skill.trigger|PRECAST>-modifiers;val=<skill.var.execution_order>;type=LIST} 
+#  - message{m="Var is unSet"} @self ?!varisset{name=skill.<skill.trigger|PRECAST>-modifiers} # Conditional Check if <skill.var.trigger>-modifiers is set. 
+
+# --- Modifier Trigger Check ---
+# Check if modifier_map contains modifiers of the given trigger(s).
+modifier-parse_list-trigger_check:
+  Skills:
+  - setvar{var=map_data;val=<caster.var.modifier_map.get.<skill.value>>;type=LIST}
+  # - message{m=Checking <skill.value> <caster.var.modifier_map.get.<skill.value>> trigger <skill.var.map_data.1> == <skill.trigger>} @self
+  - return ?comparevalue{v1=<skill.var.map_data.1>;op=!=;v2=<skill.trigger|PRECAST>}
+
+  - variableadd{var=execution_order;amount=<skill.value>:<skill.var.map_data.2>}
+  - setvar{var=execution_order;type=LIST;val=<skill.value>:<skill.var.map_data.2>} ?!varisset{var=execution_order}
+
+# --- Modifier Insertion Sort ---
+# Insertion Sort to order Modifiers by trigger FIFO, by Priority
+# Do not insertion sort if input list size is not greater than 1
+modifier-insertion_sort:
+  Skills:
+  - setvar{var=list;val=<skill.list>;type=list}
+  - setvar{var=list_size;val=<skill.var.list.size>;type=INTEGER}
+  - setvar{var=order;val=<skill.order|asc>;type=STRING}  # "asc" or "desc"
+  - return ?comparevalue{val1=<skill.var.list_size>;op=<=;val2=1}
+  
+  - foreachvalue{skill=modifier-sort_insert;values=<skill.list>}
+  - setvar{var=execution_order;val=<skill.var.list.sliceto.<skill.var.list_size>>;type=LIST} @self
+  # - message{m=Final <skill.var.execution_order>} @self
+
+modifier-sort_insert:
+  Skills:
+  - setvar{var=counter;val="<skill.index>-1"}
+  - return ?varinrange{var=counter;val=<0}
+
+  - setvar{var=value;val=<skill.value>;type=STRING} @self
+  - setvar{var=values;val=<skill.var.value.replace.:.,.tolist>;type=LIST} @self
+
+  - setvar{var=modifier_name;val=<skill.var.values.0>;type=STRING} @self
+  - setvar{var=key;val=<skill.var.values.1>;type=INTEGER} @self
+  # - message{m=<skill.var.modifier_name> <skill.var.key> <newline><skill.var.list>} @self
+  - skill{s=modifier-sort_loop}
+
+modifier-sort_loop:
+  Conditions:
+  - (comparevalues{v1=<skill.var.counter>;operator=>=;v2=0} && 
+     (
+       (comparevalues{v1=<skill.var.key>;operator=<;v2=<skill.var.list.<skill.var.counter>.replace.:.,.tolist.1>} && comparevalues{v1=<skill.var.order>;operator===;v2="asc"}) ||
+       (comparevalues{v1=<skill.var.key>;operator=>;v2=<skill.var.list.<skill.var.counter>.replace.:.,.tolist.1>} && comparevalues{v1=<skill.var.order>;operator===;v2="desc"})
+     )
+    ) orelsecast modifier-sort_end  
+  Skills:
+  - setvar{var=counter;val=<skill.var.counter>-1}
+  #- message{m=<skill.var.counter>} @self
+  - skill{s=modifier-sort_loop}
+
+modifier-sort_end:
+  Skills:
+  - setvar{var=list;val=<skill.var.list.insert.<skill.var.counter.add.1>.<skill.var.modifier_name>:<skill.var.key>>;type=LIST} @self
+
+# --- Modifier Metaskill Execution ---
+# Execute Metaskills in skill.<skill.trigger|PRECAST>-modifiers.
+modifier-execute:
+  Conditions:
+  - varisset{name=skill.<skill.trigger|PRECAST>-modifiers} true
+  Skills:
+#  - message{m="Collected <skill.var.<skill.trigger|PRECAST>-modifiers>"} @self ?varequals{var=debug;val=true}
+  - foreachvalue{values=<skill.var.<skill.trigger|PRECAST>-modifiers>;s=modifier-parse_list-execute}
+#  - message{m=<skill.var.execution_order> <caster.var.modifier_list>} ?varequals{var=debug;val=true}
+
+modifier-parse_list-execute:
+  Skills:
+  - setvar{var=value;val=<skill.value>;type=STRING}
+#  - message{m=Executing <skill.var.value.replace.:.,.tolist.0>} @self ?varequals{var=debug;val=true}
+  - vskill{s=<skill.var.value.replace.:.,.tolist.0>}
+
+
+# --- Modifier Test Cases. ---
+
+modifier-test:
+  Skills:
+  - skill:modifier{modifier_name="Blazing Sun";o=modifier-blazing_sun;priority=7} @self
+  - skill:modifier-trigger @self
+  # - message{m="<caster.var.modifier_list>"} @self
+#  - message{m="<caster.var.modifier_map>"} @self
+
+modifier-test2:
+  Skills:
+  - skill:modifier{o=avarice;modifier_name="Avarice";trigger=something;priority=9} @self
+  - skill:modifier{o=burst;modifier_name="Burst";trigger=something;priority=7} @self
+  - skill:modifier{o=phanon;modifier_name="Phanon";trigger=something;priority=6} @self
+  - skill:modifier{o=sunfire_lance;modifier_name="Sunfire Lance";trigger=something;priority=6} @self
+  - skill:modifier{o=lazarus;modifier_name="Lazarus";trigger=something;priority=3} @self
+  - skill:modifier{o=blazing_sun;modifier_name="Blazing Sun";trigger=something;priority=7} @self
+  - skill:modifier{o=reconsolidation;modifier_name="Reconsolidation";trigger=something;priority=7} @self
+
+  - setvar{var=debug;val=true;type=STRING}
+  - skill:modifier-trigger{trigger=something} @self
+  # - message{m="<caster.var.modifier_list>"} @self
+  # - message{m="<caster.var.modifier_map>"} @self
+
+modifier-test3:
+  Skills:
+  - skill:modifier{o=avarice;modifier_name="Avarice";trigger=something;priority=9;stacks=9} @self
+  - skill:modifier{o=avarice;modifier_name="Avarice";trigger=something;priority=9;stacks=3} @self
+#  - message{m="<caster.var.modifier_map>"} @self
+  - skill:modifier-remove{modifier_name=Avarice} @self
+
+blazing_sun-exec:
+  Skills:
+  - skill:modifier{modifier_name="Blazing Sun";o=modifier-blazing_sun} @self
+
+modifier-blazing_sun:
+  Skills:
+  - setvar{var=caster.blazing_sun;val=<caster.var.blazing_sun|3>-1} @self
+#  - message{m="Blazing like the sun <caster.var.blazing_sun>"} @self
+  - variableMath{var=damage;equation='x*20'}
+  - variableMath{var=warmup;equation='x*0.2'}
+  - sound{s=peachtree:spellbound_battlemage.castshort;pitch=1;volume=3} @self
+
+  - skill{s=modifier-blazing_sun-remove}
+
+modifier-blazing_sun-remove:
+  Conditions:
+  - varinrange{var=caster.blazing_sun;val=<1}
+  Skills:
+  - variableUnset{var=caster.blazing_sun}
+  - skill{s=modifier-remove;modifier_name=Blazing Sun} 
+
+sunfire_lance-exec:
+  Skills:
+  - skill:modifier-add{modifier_name="Sunfire Lance";type=STRIKE;trigger=CAST;o=modifier-sunfire_lance} @self
+  - skill:modifier-trigger{trigger=CAST} @self
+
+
+modifier-sunfire_lance:
+  Skills:
+#  - message{m="Lance Fired!"} @self
+  - aura{modifier_name=sunfire_lance;d=2*20;i=1;ma=true;rd=false;bt=true;bartimertext=Sunfire Lance;
+    oe=[ 
+      - skill{s=modifier-remove;modifier_name=Sunfire Lance} 
+      ]} @self 
+
+blaster-exec:
+  Skills:
+  - skill:modifier-add{modifier_name="Blaster";type=SPELL;o=modifier-blaster} @self
+
+modifier-blaster:
+  Skills:
+#  - message{m="Blasting"} @self
+

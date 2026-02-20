@@ -1,5 +1,0 @@
-# Hit Logic, for immunity ticks with Auras
-setRandomID:
-  Skills:
-  - setvar{var=randomid;val="<caster.uuid>_<random.-65536to65536>";type=STRING} @self
-  - message{m=<skill.var.randomid>} @self ?varequals{val=debug;val=true}

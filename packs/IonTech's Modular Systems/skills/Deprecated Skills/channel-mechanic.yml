@@ -1,0 +1,176 @@
+# channel-test_cast:
+#   Skills:
+#   - skill:Channel{name=Mana Blast;id=mana_blast-exec;
+#     damage=100;warmup=5;spellcd=3} @self
+
+# Channel:
+#   Skills:
+#   - skill:channel
+
+# channel:
+#   Skills:
+#   - skill{s=spell-init} @self
+#   - skill{s=channel-init} @self
+#   - skill{s=spell_cooldown-oncd} @self ?hasaura{auraname="<skill.id>-cd"} 
+#   - skill{s=channel-exec} @self ?!hasaura{auraname="<skill.id>-cd"}
+
+# channel-init:
+#   Conditions: 
+#   - varisset{var=warmup} false
+#   Skills:
+#   - setvar{var=warmup;val="<skill.warmup|<skill.startup|1>>*20";type=FLOAT}
+#   - setvar{var=interrupt;val="<skill.interrupt|1>";type=FLOAT}
+
+#   - setvar{var=onChannelStart;val=<skill.onChannelStart|<skill.os|channel-start_fx>>;type=STRING}
+#   - setvar{var=onChannelTick;val=<skill.onChannelTick|<skill.ot|channel-tick_fx>>;type=STRING}
+#   - setvar{var=onInterrupt;val=<skill.onInterrupt|<skill.oi|channel-interrupt-default>>;type=STRING}
+#   - setvar{var=onCast;val=<skill.onCast|<skill.oc|channel-cast_fx>>;type=STRING}
+
+
+# channel-exec:
+#   Conditions:
+#   - hasaura{name=stun} castinstead stun-oncast
+#   - (hasAuraType{t=channel} && hasAura{name=<skill.var.id>-channel} false) cast channel-manual_interrupt
+#   Skills:  
+#   - delay 0 ?hasAuraType{t=channel}
+#   - terminable{name=<skill.var.id>-channel;type=channel;i=1;d=<skill.var.warmup>;
+#     bt=true;bartimercolor=BLUE;bartimertext="Casting <#ff00ff><skill.name> &e%math_1:_<skill.var.aura-duration|0>/20%s";
+#     ma=true;rd=false;desot=false;
+#     conditions=[ - (variableIsSet{var=caster.force_interrupt} || variableIsSet{var=caster.manual_interrupt}) true ];
+#     ox=channel-interrupt_logic;
+#     os=channel-start_logic;
+#     ot=channel-tick_logic;
+#     oe=channel-cast_logic}
+
+# # Start Logic
+
+# channel-start_logic:
+#   Skills:
+#   - skill{s=channel-hit_listener} @self
+#   - summon{t=channel_indicator;sip=true;
+#     then=[ 
+#       - setvar{var=caster.channel_uuid;val=<target.uuid>;type=STRING} @targeted
+#       - sudoskill{s=[ 
+#         - mounttarget @parent 
+#         ]} @targeted
+#       - skill{s=channel-indicator_update}
+#       ]} @self
+#   - vskill{s=<skill.var.onChannelStart>} @self
+#   - skill{s=channel-tick_logic} @self
+
+# # On Damaged / hit Logic
+
+# channel-hit_listener:
+#   Skills:
+#   # - setvar{var=interrupt_damage;val=0;type=FLOAT} @self
+#   # - onDamaged{name=channel-hit;i=1;d=<skill.var.warmup>;
+#   #   desot=false;ow=true;
+#   #   oh=channel-check_hit} @self
+
+# channel-check_hit:
+#   # Conditions:
+#   #   - damagecause{cause=SUFFOCATION} false
+#   #   - damagecause{cause=STARVATION} false
+#   #   - damagecause{cause=FIRE_TICK} false
+#   #   - damagecause{cause=HOT_FLOOR} false
+#   #   - damagecause{cause=POISON} false
+#   #   - damagecause{cause=WITHER} false
+#   #   - damagecause{cause=FALL} false
+#   Skills:
+#   - variableMath{var=interrupt_damage;equation="x+<skill.var.damage-amount>"} 
+#   - setvar{var=caster.force_interrupt;val=true;type=BOOLEAN;e=1} @self ?varInRange{var=interrupt_damage;val=><skill.var.interrupt>} 
+#   - message{m="&fHit <skill.var.interrupt_damage>/<skill.var.interrupt>"} @self ?varequals{var=debug;val=true}
+
+# # Tick Logic
+
+# channel-tick_logic:
+#   Skills:
+#   - vskill{s=<skill.var.onChannelTick>}
+#   - setvar{var=progress;val="(<skill.var.warmup>-<skill.var.aura-duration>)/<skill.var.warmup>";type=FLOAT} @self
+#   - skill{s=channel-indicator_update}
+
+# channel-indicator_update:
+#   Skills:
+#   - settextdisplay{text="<skill.var.name> <newline><placeholder.channel_progress>"} @uuid{u=<caster.var.channel_uuid>}
+#   - remove @self ?variableEquals{var=interrupted;val=true}
+# # Interrupt Logic
+
+# channel-interrupt_logic:
+#   Skills:
+#   - sound{s=block.fire.extinguish;pitch=2;volume=0.3} @self
+#   - remove @uuid{u=<caster.var.channel_uuid>}
+
+#   - setvar{var=interrupted;val=true;type=BOOLEAN} @self
+#   - removeaura{aura=channel-hit} @self
+#   - vskill{s=<skill.var.onInterrupt>} @self
+
+#   - skill{s=channel-force_interrupt_logic} @self ?variableIsSet{var=caster.force_interrupt}
+#   - skill{s=channel-manual_interrupt_logic} @self ?variableIsSet{var=caster.manual_interrupt}
+
+# channel-force_interrupt_logic:
+#   Skills:
+#   - sound{s=block.beacon.deactivate;pitch=1.75;volume=0.6} @self
+#   - sound{s=block.fire.extinguish;pitch=2;volume=0.3} @self
+
+#   - setvar{var=force_interrupt;val=true;type=BOOLEAN} @self
+#   - varUnset{var=caster.force_interrupt} @self
+
+#   - vskill{s=<skill.var.onManualInterrupt>} @self
+
+# channel-manual_interrupt_logic:
+#   Skills:
+#   - sound{s=block.fire.extinguish;pitch=2;volume=0.3} @self
+
+#   - setvar{var=manual_interrupt;val=true;type=BOOLEAN} @self
+#   - varUnset{var=caster.manual_interrupt} @self
+
+#   - vskill{s=<skill.var.onForceInterrupt>} @self
+
+# channel-manual_interrupt:
+#   Skills:
+#   - setvar{var=caster.manual_interrupt;val=true;type=BOOLEAN;e=1} @self
+#   - message{m="&f<skill.var.id> Manually Interrupted"} @self
+
+# channel-cast_logic:
+#   Skills:
+#   - removeaura{aura=channel-hit} @self
+#   - remove{delay=1} @uuid{u=<caster.var.channel_uuid>}
+#   - vskill{s=<skill.var.onCast>}
+#   - vskill{s=<skill.var.id>}
+
+# channel-start_fx:
+#   Skills:
+#   - skill{s=[
+#     - sound{s=arcane.channel;pitch=1;volume=0.2} 
+#     - sound{s=entity.illusioner.cast_spell;pitch=0.1;volume=0.9} 
+#     - delay 2
+#     - sound{s=entity.illusioner.cast_spell;pitch=0.6;volume=0.9} 
+#     - delay 2
+#     - sound{s=entity.illusioner.cast_spell;pitch=1.2;volume=0.9} 
+#     ]} @self ?varInRange{var=warmup;val=>0.5}
+
+# channel-interrupt-default:
+#   Skills:
+#   - skill:spell-cooldown @self
+
+# channel-tick_fx:
+#   Skills:
+#   - setvar{var=pitch;val="<skill.var.pitch|0>+12"} 
+#   - setvar{var=yaw;val="<skill.var.yaw|0>+12"}
+#   - setvar{var=radius;val="(1-<skill.var.progress|0>)*2+2";type=FLOAT}
+#   - e:p{p=enchantment_table;a="1+2*(1-<skill.var.progress|0>)";speed=4;hs=0.3;ys=0.6;y=2} 
+#   - polygon{points=3;scale=<skill.var.radius>;db=0.5;mpd=false;
+#     pitch="<skill.var.pitch>";yaw="<skill.var.yaw>";
+#       oe=[ 
+#       - e:p{p=SOUL_FIRE_FLAME;fo=true;origin=@targetedlocation;directional=true;a=1;speed="<skill.var.radius>/10"} @selflocation{yo=1}
+#       ]} @selflocation{yo=1}
+
+# channel-cast_fx:
+#   Skills:
+#   - setvarloc{var=originloc;val=@selflocation}
+#   - polygon{points=16;scale=4.4;db=0.5;mpd=true;repeat=3;
+#     pitch=<random.-15to15>;yaw=<random.-45to45>;
+#     oe=[
+#     - e:p{p=SOUL_FIRE_FLAME;fo=true;origin=@variablelocation{var=originloc};directional=true;a=1;speed=0.4}
+#     ]} @variablelocation{var=originloc}
+  
