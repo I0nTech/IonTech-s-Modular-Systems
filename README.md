@@ -6,8 +6,7 @@ The original intent of this project was to centralize commonly used gameplay log
 
 Likely a bit of both. This pack contains "modules" that act as which take in inputs via Skill Parameters to handle complex behavior. Every Module is designed to integrate with all other Modules, allowing for complex behaviour by nesting modules within each other.
 
-Installation instructions are detailled in the README.TXT
-Make sure that you follow these instructions while installing the pack. 
+Installation instructions are detailled in the README.TXT 
 
 ### Disclaimers:
  Requires at basic understanding of MythicMobs for effective use. 
