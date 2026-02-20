@@ -1,12 +1,11 @@
-# IonTech-s-Modular-Systems
+# IonTech's Modular Systems
 
-Systems for MythicMobs. The original intent of this project was to centralize commonly used gameplay logic for minecraft servers into modules, minimizing technical debt and providing a scalable foundation for MythicMobs enthusiasts to build upon. I cannot say if I succeeded or failed in that regard. 
+Modular Systems and Logic for use in the MythicMobs plugin. The original intent of this project was to centralize commonly used gameplay logic for minecraft servers into modules, minimizing technical debt and providing a scalable foundation for MythicMobs enthusiasts to build upon. I cannot say if I succeeded or failed in that regard. 
 
 Likely a bit of both. This pack contains "modules" that act as which take in inputs via Skill Parameters to handle complex behavior. Every Module is designed to integrate with all other Modules, allowing for complex behaviour by nesting modules within each other.
 
-
-Disclaimers:
- Requires at least basic understanding of MythicMobs to use. 
+### Disclaimers:
+ Requires at basic understanding of MythicMobs for effective use. 
  Very little documentation is provided, with some comments. Working examples and applications are provided. 
  Primer to advanced MythicMobs usage. Welcome to Wonderland. 
 
